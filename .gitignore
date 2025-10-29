@@ -37,3 +37,17 @@ next-env.d.ts
 # package lock (will be regenerated)
 package-lock.json
 
+# Laravel files (if accidentally included)
+/resources
+/public/build
+/webpack.mix.js
+/vite.config.js
+/artisan
+/composer.json
+/composer.lock
+/vendor
+/bootstrap
+/storage
+/config
+/database
+
