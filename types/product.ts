@@ -6,6 +6,9 @@ export interface Product {
   originalPrice: string
   discount: string
   category: string
+  asin?: string
+  ean?: string
+  description?: string
   affiliateLinks?: {
     de?: string  // Amazon.de (Germany)
     fr?: string  // Amazon.fr (France)

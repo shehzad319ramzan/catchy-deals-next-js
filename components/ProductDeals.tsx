@@ -1,7 +1,10 @@
 import ProductCard from './ProductCard'
-import { sampleProducts } from '@/types/product'
+import Disclaimer from './Disclaimer'
+import { fetchProducts } from '@/lib/api'
 
-export default function ProductDeals() {
+export default async function ProductDeals() {
+  const products = await fetchProducts()
+
   return (
     <section id="deals-section" className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
       <div className="mb-8 md:mb-12">
@@ -13,11 +16,20 @@ export default function ProductDeals() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-        {sampleProducts.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
+      {products.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-lg">No products available at the moment.</p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+          <Disclaimer />
+        </>
+      )}
     </section>
   )
 }

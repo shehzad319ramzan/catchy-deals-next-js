@@ -1,7 +1,8 @@
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import MarketplaceButtons from '@/components/MarketplaceButtons'
-import { sampleProducts } from '@/types/product'
+import Disclaimer from '@/components/Disclaimer'
+import { fetchProductById } from '@/lib/api'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -14,7 +15,7 @@ interface ProductDetailPageProps {
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
   const { id } = await params
-  const product = sampleProducts.find(p => p.id === id)
+  const product = await fetchProductById(id)
 
   if (!product) {
     notFound()
@@ -77,10 +78,34 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
             <div className="mb-8 p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-100">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Product Description</h2>
-              <p className="text-gray-700 leading-relaxed mb-4">
-                This amazing product offers exceptional value with a significant discount. 
-                Don&apos;t miss out on this limited-time deal! Get the best quality at an unbeatable price.
-              </p>
+              {product.description ? (
+                <p className="text-gray-700 leading-relaxed mb-4">
+                  {product.description}
+                </p>
+              ) : (
+                <p className="text-gray-700 leading-relaxed mb-4">
+                  This amazing product offers exceptional value with a significant discount. 
+                  Don&apos;t miss out on this limited-time deal! Get the best quality at an unbeatable price.
+                </p>
+              )}
+              
+              {/* Product Information */}
+              <div className="mt-6 pt-6 border-t border-purple-200">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  {product.asin && (
+                    <div>
+                      <span className="font-semibold text-gray-700">ASIN:</span>
+                      <span className="ml-2 text-gray-600">{product.asin}</span>
+                    </div>
+                  )}
+                  {product.ean && (
+                    <div>
+                      <span className="font-semibold text-gray-700">EAN:</span>
+                      <span className="ml-2 text-gray-600">{product.ean}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
               <ul className="space-y-2 text-gray-700">
                 <li className="flex items-start">
                   <svg className="w-5 h-5 text-purple-600 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -115,6 +140,10 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+        <Disclaimer />
       </div>
 
       <Footer />
