@@ -1,5 +1,8 @@
 const API_BASE_URL = 'https://catchy-deals.freshusdeals.com/api/v1'
 
+// Days filter - will be made dynamic later via API parameter
+const DAYS_FILTER = 7
+
 export interface ApiProduct {
   id: string
   title: string
@@ -105,6 +108,14 @@ export function transformApiProductToProduct(apiProduct: ApiProduct): Product {
   }
 }
 
+// Helper function to check if product is within last N days
+function isWithinLastDays(postedAt: string, days: number): boolean {
+  const postedDate = new Date(postedAt)
+  const now = new Date()
+  const daysAgo = new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
+  return postedDate >= daysAgo
+}
+
 // Fetch all products
 export async function fetchProducts(): Promise<Product[]> {
   try {
@@ -122,8 +133,13 @@ export async function fetchProducts(): Promise<Product[]> {
       throw new Error(apiResponse.message || 'Failed to fetch products')
     }
 
-    // Filter only active products (status === "1")
-    const activeProducts = apiResponse.data.products.filter(p => p.status === '1')
+    // Filter only active products (status === "1") and from last N days based on created_at
+    const activeProducts = apiResponse.data.products.filter(p => {
+      const isActive = p.status === '1'
+      const isWithinDays = isWithinLastDays(p.timestamps.created_at, DAYS_FILTER)
+      return isActive && isWithinDays
+    })
+    
     return activeProducts.map(transformApiProductToProduct)
   } catch (error) {
     console.error('Error fetching products:', error)
