@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://catchy-deals.de/api/v1'
+const API_BASE_URL = 'https://catchy-deals.freshusdeals.com/api/v1'
 
 // Days filter - will be made dynamic later via API parameter
 const DAYS_FILTER = 7
