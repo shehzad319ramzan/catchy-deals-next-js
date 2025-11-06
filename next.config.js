@@ -17,7 +17,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'catchy-deals.freshusdeals.com',
+        hostname: 'catchy-deals.de',
         port: '',
         pathname: '/**',
       },
