@@ -78,16 +78,18 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
             <div className="mb-8 p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-100">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Product Description</h2>
-              {product.description ? (
-                <p className="text-gray-700 leading-relaxed mb-4">
-                  {product.description}
-                </p>
-              ) : (
-                <p className="text-gray-700 leading-relaxed mb-4">
-                  This amazing product offers exceptional value with a significant discount. 
-                  Don&apos;t miss out on this limited-time deal! Get the best quality at an unbeatable price.
-                </p>
-              )}
+              <div className="mb-6">
+                {product.description ? (
+                  <div className="text-gray-700 leading-relaxed whitespace-pre-wrap break-words">
+                    {product.description}
+                  </div>
+                ) : (
+                  <p className="text-gray-700 leading-relaxed">
+                    This amazing product offers exceptional value with a significant discount. 
+                    Don&apos;t miss out on this limited-time deal! Get the best quality at an unbeatable price.
+                  </p>
+                )}
+              </div>
               
               {/* Product Information */}
               <div className="mt-6 pt-6 border-t border-purple-200">
@@ -106,7 +108,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                   )}
                 </div>
               </div>
-              <ul className="space-y-2 text-gray-700">
+              <ul className="space-y-2 text-gray-700 mt-6">
                 <li className="flex items-start">
                   <svg className="w-5 h-5 text-purple-600 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 6.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />

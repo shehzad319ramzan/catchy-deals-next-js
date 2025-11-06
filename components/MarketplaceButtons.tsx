@@ -2,8 +2,8 @@ interface MarketplaceButtonsProps {
   affiliateLinks?: {
     de?: string
     fr?: string
-    com?: string
-    coUk?: string
+    it?: string
+    es?: string
   }
 }
 
@@ -23,17 +23,17 @@ const marketplaces = [
     color: 'from-blue-400 to-blue-600'
   },
   {
-    key: 'com',
-    name: 'Amazon.com',
-    flag: '🇺🇸',
-    country: 'USA',
-    color: 'from-orange-400 to-orange-600'
+    key: 'it',
+    name: 'Amazon.it',
+    flag: '🇮🇹',
+    country: 'Italy',
+    color: 'from-green-400 to-green-600'
   },
   {
-    key: 'coUk',
-    name: 'Amazon.co.uk',
-    flag: '🇬🇧',
-    country: 'UK',
+    key: 'es',
+    name: 'Amazon.es',
+    flag: '🇪🇸',
+    country: 'Spain',
     color: 'from-red-400 to-red-600'
   }
 ] as const

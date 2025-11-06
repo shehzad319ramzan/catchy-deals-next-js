@@ -12,8 +12,8 @@ export interface Product {
   affiliateLinks?: {
     de?: string  // Amazon.de (Germany)
     fr?: string  // Amazon.fr (France)
-    com?: string // Amazon.com (US)
-    coUk?: string // Amazon.co.uk (UK)
+    it?: string  // Amazon.it (Italy)
+    es?: string  // Amazon.es (Spain)
   }
 }
 
@@ -29,8 +29,8 @@ export const sampleProducts: Product[] = [
     affiliateLinks: {
       de: 'https://amzn.to/example-de',
       fr: 'https://amzn.to/example-fr',
-      com: 'https://amzn.to/example-com',
-      coUk: 'https://amzn.to/example-co-uk'
+      it: 'https://amzn.to/example-it',
+      es: 'https://amzn.to/example-es'
     }
   },
   {

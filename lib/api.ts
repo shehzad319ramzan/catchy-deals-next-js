@@ -62,8 +62,8 @@ export interface Product {
   affiliateLinks?: {
     de?: string
     fr?: string
-    com?: string
-    coUk?: string
+    it?: string
+    es?: string
   }
 }
 
@@ -86,11 +86,11 @@ export function transformApiProductToProduct(apiProduct: ApiProduct): Product {
   if (apiProduct.regional_pricing.fr_price) {
     affiliateLinks.fr = baseUrl.replace(/amazon\.\w{2,3}/, 'amazon.fr')
   }
-  if (apiProduct.regional_pricing.es_price) {
-    affiliateLinks.com = baseUrl.replace(/amazon\.\w{2,3}/, 'amazon.com')
-  }
   if (apiProduct.regional_pricing.it_price) {
-    affiliateLinks.coUk = baseUrl.replace(/amazon\.\w{2,3}/, 'amazon.co.uk')
+    affiliateLinks.it = baseUrl.replace(/amazon\.\w{2,3}/, 'amazon.it')
+  }
+  if (apiProduct.regional_pricing.es_price) {
+    affiliateLinks.es = baseUrl.replace(/amazon\.\w{2,3}/, 'amazon.es')
   }
 
   return {
