@@ -68,6 +68,7 @@ export interface Product {
   asin?: string
   ean?: string
   description?: string
+  postedAt?: string
   affiliateLinks?: {
     de?: string
     fr?: string
@@ -111,6 +112,7 @@ export function transformApiProductToProduct(apiProduct: ApiProduct): Product {
     asin: apiProduct.asin,
     ean: apiProduct.ean,
     description: apiProduct.description,
+    postedAt: apiProduct.timestamps.posted_at,
     affiliateLinks
   }
 }

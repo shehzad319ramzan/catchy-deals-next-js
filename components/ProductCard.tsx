@@ -7,6 +7,17 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const postedDate = product.postedAt ? new Date(product.postedAt) : null
+  const formattedPostedDate = postedDate
+    ? postedDate.toLocaleString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    : null
+
   return (
     <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-100 group flex flex-col h-full">
       <div className="aspect-square w-full relative overflow-hidden bg-gray-50">
@@ -20,6 +31,9 @@ export default function ProductCard({ product }: ProductCardProps) {
       </div>
 
       <div className="p-4 sm:p-6 flex flex-col flex-grow">
+        {formattedPostedDate && (
+          <p className="text-xs text-gray-500 mb-2">Posted {formattedPostedDate}</p>
+        )}
         <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-3 line-clamp-2 min-h-[3rem]">
           {product.title}
         </h3>

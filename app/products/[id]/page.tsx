@@ -21,6 +21,17 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     notFound()
   }
 
+  const postedDate = product.postedAt ? new Date(product.postedAt) : null
+  const formattedPostedDate = postedDate
+    ? postedDate.toLocaleString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    : null
+
   return (
     <main className="min-h-screen bg-white">
       <Header />
@@ -74,6 +85,9 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                   {product.discount}
                 </span>
               </div>
+              {formattedPostedDate && (
+                <p className="text-xs text-gray-500">Posted {formattedPostedDate}</p>
+              )}
             </div>
 
             <div className="mb-8 p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-100">

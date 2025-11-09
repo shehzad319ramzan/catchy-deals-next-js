@@ -9,6 +9,7 @@ export interface Product {
   asin?: string
   ean?: string
   description?: string
+  postedAt?: string
   affiliateLinks?: {
     de?: string  // Amazon.de (Germany)
     fr?: string  // Amazon.fr (France)
@@ -26,6 +27,7 @@ export const sampleProducts: Product[] = [
     originalPrice: '€155.11',
     discount: '-69%',
     category: 'Outdoor',
+    postedAt: '2025-01-01T10:00:00Z',
     affiliateLinks: {
       de: 'https://amzn.to/example-de',
       fr: 'https://amzn.to/example-fr',
@@ -41,6 +43,7 @@ export const sampleProducts: Product[] = [
     originalPrice: '€22.66',
     discount: '-64%',
     category: 'Office',
+    postedAt: '2025-01-02T10:00:00Z',
     affiliateLinks: {
       de: 'https://amzn.to/example-de-2',
       fr: 'https://amzn.to/example-fr-2'
@@ -53,7 +56,8 @@ export const sampleProducts: Product[] = [
     currentPrice: '€89.99',
     originalPrice: '€159.99',
     discount: '-44%',
-    category: 'Baby'
+    category: 'Baby',
+    postedAt: '2025-01-03T10:00:00Z'
   },
   {
     id: '4',
@@ -62,7 +66,8 @@ export const sampleProducts: Product[] = [
     currentPrice: '€12.99',
     originalPrice: '€24.99',
     discount: '-48%',
-    category: 'Personal Care'
+    category: 'Personal Care',
+    postedAt: '2025-01-04T10:00:00Z'
   },
   {
     id: '5',
@@ -71,7 +76,8 @@ export const sampleProducts: Product[] = [
     currentPrice: '€18.99',
     originalPrice: '€42.99',
     discount: '-56%',
-    category: 'Home'
+    category: 'Home',
+    postedAt: '2025-01-05T10:00:00Z'
   },
   {
     id: '6',
@@ -80,7 +86,8 @@ export const sampleProducts: Product[] = [
     currentPrice: '€34.99',
     originalPrice: '€79.99',
     discount: '-56%',
-    category: 'Toys'
+    category: 'Toys',
+    postedAt: '2025-01-06T10:00:00Z'
   },
   {
     id: '7',
@@ -89,7 +96,8 @@ export const sampleProducts: Product[] = [
     currentPrice: '€16.99',
     originalPrice: '€34.99',
     discount: '-51%',
-    category: 'Office'
+    category: 'Office',
+    postedAt: '2025-01-07T10:00:00Z'
   },
   {
     id: '8',
@@ -98,7 +106,8 @@ export const sampleProducts: Product[] = [
     currentPrice: '€14.99',
     originalPrice: '€29.99',
     discount: '-50%',
-    category: 'Travel'
+    category: 'Travel',
+    postedAt: '2025-01-08T10:00:00Z'
   },
   {
     id: '9',
@@ -107,7 +116,8 @@ export const sampleProducts: Product[] = [
     currentPrice: '€39.99',
     originalPrice: '€79.99',
     discount: '-50%',
-    category: 'Home'
+    category: 'Home',
+    postedAt: '2025-01-09T10:00:00Z'
   },
   {
     id: '10',
@@ -116,7 +126,8 @@ export const sampleProducts: Product[] = [
     currentPrice: '€59.99',
     originalPrice: '€129.99',
     discount: '-54%',
-    category: 'Electronics'
+    category: 'Electronics',
+    postedAt: '2025-01-10T10:00:00Z'
   },
   {
     id: '11',
@@ -125,7 +136,8 @@ export const sampleProducts: Product[] = [
     currentPrice: '€24.99',
     originalPrice: '€49.99',
     discount: '-50%',
-    category: 'Health'
+    category: 'Health',
+    postedAt: '2025-01-11T10:00:00Z'
   },
   {
     id: '12',
@@ -134,7 +146,8 @@ export const sampleProducts: Product[] = [
     currentPrice: '€19.99',
     originalPrice: '€44.99',
     discount: '-56%',
-    category: 'Sports'
+    category: 'Sports',
+    postedAt: '2025-01-12T10:00:00Z'
   },
 ]
 
