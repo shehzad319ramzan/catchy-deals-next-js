@@ -16,6 +16,12 @@ export interface Product {
     it?: string  // Amazon.it (Italy)
     es?: string  // Amazon.es (Spain)
   }
+  regionalPrices?: {
+    de?: number
+    fr?: number
+    it?: number
+    es?: number
+  }
 }
 
 export const sampleProducts: Product[] = [

@@ -145,7 +145,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             </div>
 
             <div className="space-y-6">
-              <MarketplaceButtons affiliateLinks={product.affiliateLinks} />
+              <MarketplaceButtons affiliateLinks={product.affiliateLinks} regionalPrices={product.regionalPrices} />
               
               <button className="w-full bg-white border-2 border-purple-600 text-purple-600 hover:bg-purple-50 font-semibold py-4 px-6 rounded-lg transition-all flex items-center justify-center space-x-2 text-lg">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

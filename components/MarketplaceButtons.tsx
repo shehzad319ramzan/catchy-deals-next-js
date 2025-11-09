@@ -5,6 +5,12 @@ interface MarketplaceButtonsProps {
     it?: string
     es?: string
   }
+  regionalPrices?: {
+    de?: number
+    fr?: number
+    it?: number
+    es?: number
+  }
 }
 
 const marketplaces = [
@@ -38,7 +44,7 @@ const marketplaces = [
   }
 ] as const
 
-export default function MarketplaceButtons({ affiliateLinks }: MarketplaceButtonsProps) {
+export default function MarketplaceButtons({ affiliateLinks, regionalPrices }: MarketplaceButtonsProps) {
   if (!affiliateLinks) {
     return null
   }
@@ -65,11 +71,18 @@ export default function MarketplaceButtons({ affiliateLinks }: MarketplaceButton
               href={link}
               target="_blank"
               rel="noopener noreferrer"
-              className={`bg-gradient-to-r ${marketplace.color} hover:opacity-90 text-white font-semibold py-3 px-4 rounded-lg transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 duration-200 flex items-center justify-center space-x-2 text-sm sm:text-base`}
+              className={`bg-gradient-to-r ${marketplace.color} hover:opacity-90 text-white font-semibold py-3 px-4 rounded-lg transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 duration-200 flex items-center justify-between text-sm sm:text-base`}
             >
-              <span className="text-xl">{marketplace.flag}</span>
-              <span>{marketplace.name}</span>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center space-x-2">
+                <span className="text-xl">{marketplace.flag}</span>
+                <span>{marketplace.name}</span>
+              </div>
+              {regionalPrices?.[marketplace.key as keyof typeof regionalPrices] && (
+                <span className="text-sm sm:text-base font-semibold">
+                  €{regionalPrices[marketplace.key as keyof typeof regionalPrices]?.toFixed(2)}
+                </span>
+              )}
+              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
               </svg>
             </a>

@@ -75,6 +75,12 @@ export interface Product {
     it?: string
     es?: string
   }
+  regionalPrices?: {
+    de?: number
+    fr?: number
+    it?: number
+    es?: number
+  }
 }
 
 // Convert API product to app product format
@@ -113,7 +119,13 @@ export function transformApiProductToProduct(apiProduct: ApiProduct): Product {
     ean: apiProduct.ean,
     description: apiProduct.description,
     postedAt: apiProduct.timestamps.posted_at,
-    affiliateLinks
+    affiliateLinks,
+    regionalPrices: {
+      de: apiProduct.regional_pricing.de_price ? parseFloat(apiProduct.regional_pricing.de_price) : undefined,
+      fr: apiProduct.regional_pricing.fr_price ? parseFloat(apiProduct.regional_pricing.fr_price) : undefined,
+      it: apiProduct.regional_pricing.it_price ? parseFloat(apiProduct.regional_pricing.it_price) : undefined,
+      es: apiProduct.regional_pricing.es_price ? parseFloat(apiProduct.regional_pricing.es_price) : undefined
+    }
   }
 }
 
