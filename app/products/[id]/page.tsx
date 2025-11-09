@@ -58,19 +58,19 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
               {product.title}
             </h1>
 
             <div className="mb-8">
               <div className="flex items-center space-x-4 mb-4">
-                <span className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <span className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                   {product.currentPrice}
                 </span>
-                <span className="text-2xl text-gray-400 line-through">
+                <span className="text-xl sm:text-2xl text-gray-400 line-through">
                   {product.originalPrice}
                 </span>
-                <span className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-lg font-semibold px-4 py-2 rounded">
+                <span className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-base sm:text-lg font-semibold px-4 py-2 rounded">
                   {product.discount}
                 </span>
               </div>
