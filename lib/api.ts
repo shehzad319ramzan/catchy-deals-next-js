@@ -3,6 +3,15 @@ const API_BASE_URL = 'https://catchy-deals.freshusdeals.com/api/v1'
 // Days filter - will be made dynamic later via API parameter
 const DAYS_FILTER = 7
 
+const MARKETPLACE_CONFIG = {
+  de: { domain: 'de', tag: 'catchydeal041-21' },
+  fr: { domain: 'fr', tag: 'catchydeals08-21' },
+  it: { domain: 'it', tag: 'catchydeals03-21' },
+  es: { domain: 'es', tag: 'catchydeals05-21' }
+} as const
+
+type MarketplaceKey = keyof typeof MARKETPLACE_CONFIG
+
 export interface ApiProduct {
   id: string
   title: string
@@ -75,23 +84,21 @@ export function transformApiProductToProduct(apiProduct: ApiProduct): Product {
 
   // Generate affiliate links based on available marketplace prices
   const affiliateLinks: Product['affiliateLinks'] = {}
-  
-  // Base URL from product_url (usually amazon.de)
-  const baseUrl = apiProduct.product_url
-  
-  // Generate marketplace URLs based on regional pricing availability
-  if (apiProduct.regional_pricing.de_price) {
-    affiliateLinks.de = baseUrl.replace(/amazon\.\w{2,3}/, 'amazon.de')
+  const asin = apiProduct.asin?.trim()
+
+  const addAffiliateLink = (marketplaceKey: MarketplaceKey, price: string | null | undefined) => {
+    if (!price || !asin) {
+      return
+    }
+
+    const { domain, tag } = MARKETPLACE_CONFIG[marketplaceKey]
+    affiliateLinks[marketplaceKey] = `https://www.amazon.${domain}/dp/${asin}?tag=${tag}`
   }
-  if (apiProduct.regional_pricing.fr_price) {
-    affiliateLinks.fr = baseUrl.replace(/amazon\.\w{2,3}/, 'amazon.fr')
-  }
-  if (apiProduct.regional_pricing.it_price) {
-    affiliateLinks.it = baseUrl.replace(/amazon\.\w{2,3}/, 'amazon.it')
-  }
-  if (apiProduct.regional_pricing.es_price) {
-    affiliateLinks.es = baseUrl.replace(/amazon\.\w{2,3}/, 'amazon.es')
-  }
+
+  addAffiliateLink('de', apiProduct.regional_pricing.de_price)
+  addAffiliateLink('fr', apiProduct.regional_pricing.fr_price)
+  addAffiliateLink('it', apiProduct.regional_pricing.it_price)
+  addAffiliateLink('es', apiProduct.regional_pricing.es_price)
 
   return {
     id: apiProduct.asin, // Use ASIN as ID
