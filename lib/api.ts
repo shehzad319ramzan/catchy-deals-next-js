@@ -85,9 +85,25 @@ export interface Product {
 
 // Convert API product to app product format
 export function transformApiProductToProduct(apiProduct: ApiProduct): Product {
-  const currentPrice = parseFloat(apiProduct.pricing.current_price)
-  const oldPrice = parseFloat(apiProduct.pricing.old_price)
-  const discountPercent = Math.round(apiProduct.pricing.savings_percentage)
+  const regionalPriceValues = [
+    apiProduct.regional_pricing.de_price,
+    apiProduct.regional_pricing.fr_price,
+    apiProduct.regional_pricing.it_price,
+    apiProduct.regional_pricing.es_price
+  ]
+    .map(price => (price ? parseFloat(price) : NaN))
+    .filter(price => !Number.isNaN(price))
+
+  const currentPrice =
+    regionalPriceValues.length > 0 ? Math.min(...regionalPriceValues) : parseFloat(apiProduct.pricing.current_price)
+  const originalPrice =
+    regionalPriceValues.length > 0 ? Math.max(...regionalPriceValues) : parseFloat(apiProduct.pricing.old_price)
+
+  const calculatedDiscount =
+    originalPrice > 0 ? ((originalPrice - currentPrice) / originalPrice) * 100 : apiProduct.pricing.savings_percentage
+  const discountPercent = Number.isFinite(calculatedDiscount)
+    ? Math.max(0, Math.round(calculatedDiscount))
+    : Math.max(0, Math.round(apiProduct.pricing.savings_percentage))
 
   // Generate affiliate links based on available marketplace prices
   const affiliateLinks: Product['affiliateLinks'] = {}
@@ -112,7 +128,7 @@ export function transformApiProductToProduct(apiProduct: ApiProduct): Product {
     title: apiProduct.title,
     image: apiProduct.img_url,
     currentPrice: `€${currentPrice.toFixed(2)}`,
-    originalPrice: `€${oldPrice.toFixed(2)}`,
+    originalPrice: `€${originalPrice.toFixed(2)}`,
     discount: `-${discountPercent}%`,
     category: 'General', // You may want to add category to API
     asin: apiProduct.asin,
