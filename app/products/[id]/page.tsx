@@ -58,7 +58,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               </span>
             </div>
 
-            <h1 className="text-[2rem] font-bold text-gray-900 mb-6">
+            <h1 className="text-[1rem] font-bold text-gray-900 mb-6">
               {product.title}
             </h1>
 
