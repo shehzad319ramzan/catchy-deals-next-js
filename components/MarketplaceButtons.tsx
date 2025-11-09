@@ -65,6 +65,7 @@ export default function MarketplaceButtons({ affiliateLinks, regionalPrices }: M
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {availableMarketplaces.map(marketplace => {
           const link = affiliateLinks[marketplace.key as keyof typeof affiliateLinks]!
+          const price = regionalPrices?.[marketplace.key as keyof Exclude<MarketplaceButtonsProps['regionalPrices'], undefined>]
           return (
             <a
               key={marketplace.key}
@@ -77,10 +78,12 @@ export default function MarketplaceButtons({ affiliateLinks, regionalPrices }: M
                 <span className="text-xl">{marketplace.flag}</span>
                 <span>{marketplace.name}</span>
               </div>
-              {regionalPrices?.[marketplace.key as keyof typeof regionalPrices] && (
-                <span className="text-sm sm:text-base font-semibold">
-                  €{regionalPrices[marketplace.key as keyof typeof regionalPrices]?.toFixed(2)}
+              {typeof price === 'number' ? (
+                <span className="text-sm sm:text-base font-semibold whitespace-nowrap">
+                  €{price.toFixed(2)}
                 </span>
+              ) : (
+                <span className="text-xs text-white/80">N/A</span>
               )}
               <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
