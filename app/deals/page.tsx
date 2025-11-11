@@ -1,11 +1,8 @@
 import Header from '@/components/Header'
 import ProductDeals from '@/components/ProductDeals'
 import Footer from '@/components/Footer'
-import { fetchProducts } from '@/lib/api'
 
-export default async function DealsPage() {
-  const products = await fetchProducts()
-
+export default function DealsPage() {
   return (
     <main className="min-h-screen bg-white">
       <Header />
@@ -17,7 +14,7 @@ export default async function DealsPage() {
           Browse through all our amazing deals and save big!
         </p>
       </div>
-      <ProductDeals products={products} />
+      <ProductDeals />
       <Footer />
     </main>
   )

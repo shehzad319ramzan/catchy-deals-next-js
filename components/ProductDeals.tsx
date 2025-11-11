@@ -1,45 +1,48 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import ProductCard from './ProductCard'
 import Disclaimer from './Disclaimer'
 import { Product } from '@/types/product'
+import { fetchProducts } from '@/lib/api'
 
-interface ProductDealsProps {
-  products?: Product[]
-}
-
-export default function ProductDeals({ products = [] }: ProductDealsProps) {
+export default function ProductDeals() {
+  const [products, setProducts] = useState<Product[]>([])
   const [currentPage, setCurrentPage] = useState(1)
-  // Always show 12 products per page (4 columns × 3 rows)
-  const itemsPerPage = 12
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalProducts, setTotalProducts] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   
-  // Sort products by latest first (postedAt descending)
-  const sortedProducts = useMemo(() => {
-    if (!products || products.length === 0) return []
-    return [...products].sort((a, b) => {
-      if (!a.postedAt && !b.postedAt) return 0
-      if (!a.postedAt) return 1
-      if (!b.postedAt) return -1
-      return new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime()
-    })
-  }, [products])
-  
-  const totalPages = Math.ceil(sortedProducts.length / itemsPerPage)
-  
-  const paginatedProducts = useMemo(() => {
-    if (sortedProducts.length === 0) return []
-    const startIndex = (currentPage - 1) * itemsPerPage
-    const endIndex = startIndex + itemsPerPage
-    return sortedProducts.slice(startIndex, endIndex)
-  }, [sortedProducts, currentPage, itemsPerPage])
-  
-  // Reset to page 1 if current page is out of bounds
+  const itemsPerPage = 12 // 4 columns × 3 rows
+
   useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0) {
-      setCurrentPage(1)
+    const loadProducts = async () => {
+      setLoading(true)
+      setError(null)
+      
+      try {
+        const result = await fetchProducts({
+          page: currentPage,
+          perPage: itemsPerPage,
+          sortBy: 'created_at',
+          sortOrder: 'desc',
+          status: '1'
+        })
+        
+        setProducts(result.products)
+        setTotalPages(result.pagination.lastPage)
+        setTotalProducts(result.pagination.total)
+      } catch (err) {
+        setError('Failed to load products. Please try again later.')
+        console.error('Error loading products:', err)
+      } finally {
+        setLoading(false)
+      }
     }
-  }, [currentPage, totalPages])
+
+    loadProducts()
+  }, [currentPage, itemsPerPage])
 
   const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages) {
@@ -50,6 +53,49 @@ export default function ProductDeals({ products = [] }: ProductDealsProps) {
         dealsSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
     }
+  }
+
+  if (loading) {
+    return (
+      <section id="deals-section" className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
+        <div className="mb-8 md:mb-12">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
+            Current top deals
+          </h2>
+          <p className="text-gray-600 text-base sm:text-lg lg:text-xl">
+            Top bargains with real discounts - freshly compiled for you every day.
+          </p>
+        </div>
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+          <p className="text-gray-500 text-lg mt-4">Loading products...</p>
+        </div>
+      </section>
+    )
+  }
+
+  if (error) {
+    return (
+      <section id="deals-section" className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
+        <div className="mb-8 md:mb-12">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
+            Current top deals
+          </h2>
+          <p className="text-gray-600 text-base sm:text-lg lg:text-xl">
+            Top bargains with real discounts - freshly compiled for you every day.
+          </p>
+        </div>
+        <div className="text-center py-12">
+          <p className="text-red-500 text-lg mb-4">{error}</p>
+          <button
+            onClick={() => setCurrentPage(1)}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all"
+          >
+            Try Again
+          </button>
+        </div>
+      </section>
+    )
   }
 
   return (
@@ -63,14 +109,14 @@ export default function ProductDeals({ products = [] }: ProductDealsProps) {
         </p>
       </div>
 
-      {sortedProducts.length === 0 ? (
+      {products.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">No products available at the moment.</p>
         </div>
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-            {paginatedProducts.map((product) => (
+            {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
@@ -81,9 +127,9 @@ export default function ProductDeals({ products = [] }: ProductDealsProps) {
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => goToPage(currentPage - 1)}
-                  disabled={currentPage === 1}
+                  disabled={currentPage === 1 || loading}
                   className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                    currentPage === 1
+                    currentPage === 1 || loading
                       ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                       : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
                   }`}
@@ -103,11 +149,12 @@ export default function ProductDeals({ products = [] }: ProductDealsProps) {
                         <button
                           key={page}
                           onClick={() => goToPage(page)}
+                          disabled={loading}
                           className={`w-10 h-10 rounded-lg font-semibold transition-all ${
                             currentPage === page
                               ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          }`}
+                          } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                           {page}
                         </button>
@@ -128,9 +175,9 @@ export default function ProductDeals({ products = [] }: ProductDealsProps) {
 
                 <button
                   onClick={() => goToPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
+                  disabled={currentPage === totalPages || loading}
                   className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                    currentPage === totalPages
+                    currentPage === totalPages || loading
                       ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                       : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
                   }`}
@@ -140,7 +187,7 @@ export default function ProductDeals({ products = [] }: ProductDealsProps) {
               </div>
               
               <p className="text-sm text-gray-600">
-                Page {currentPage} of {totalPages} ({sortedProducts.length} total products)
+                Page {currentPage} of {totalPages} ({totalProducts} total products from last 7 days)
               </p>
             </div>
           )}

@@ -40,7 +40,7 @@ export interface ApiProduct {
   status: string
 }
 
-interface ApiResponse {
+export interface ApiResponse {
   success: boolean
   message: string
   data: {
@@ -55,6 +55,16 @@ interface ApiResponse {
     from: number
     to: number
   }
+}
+
+export interface FetchProductsParams {
+  page?: number
+  perPage?: number
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+  minPrice?: number
+  maxPrice?: number
+  status?: string
 }
 
 export interface Product {
@@ -163,12 +173,64 @@ function isWithinLastDays(createdAt: string, days: number): boolean {
   return createdDate >= daysAgo && createdDate <= now
 }
 
-// Fetch all products
-export async function fetchProducts(): Promise<Product[]> {
+// Fetch products with pagination support
+export async function fetchProducts(params?: FetchProductsParams): Promise<{
+  products: Product[]
+  pagination: {
+    currentPage: number
+    lastPage: number
+    perPage: number
+    total: number
+    from: number
+    to: number
+  }
+}> {
   try {
-    const response = await fetch(`${API_BASE_URL}/get-products`, {
-      next: { revalidate: 60 } // Revalidate every 60 seconds
-    })
+    // Build query parameters
+    const queryParams = new URLSearchParams()
+    
+    // Enable pagination
+    queryParams.append('paginate', 'true')
+    queryParams.append('per_page', String(params?.perPage || 12))
+    queryParams.append('page', String(params?.page || 1))
+    
+    // Add sorting
+    if (params?.sortBy) {
+      queryParams.append('sort_by', params.sortBy)
+    }
+    if (params?.sortOrder) {
+      queryParams.append('sort_order', params.sortOrder)
+    } else {
+      // Default: sort by created_at desc (newest first)
+      queryParams.append('sort_by', 'created_at')
+      queryParams.append('sort_order', 'desc')
+    }
+    
+    // Add filters
+    if (params?.minPrice) {
+      queryParams.append('min_price', String(params.minPrice))
+    }
+    if (params?.maxPrice) {
+      queryParams.append('max_price', String(params.maxPrice))
+    }
+    if (params?.status) {
+      queryParams.append('status', params.status)
+    } else {
+      // Default: only active products
+      queryParams.append('status', '1')
+    }
+
+    const url = `${API_BASE_URL}/get-products?${queryParams.toString()}`
+    
+    // Use cache: 'no-store' for client components, or next: { revalidate } for server components
+    const fetchOptions: RequestInit = {
+      cache: 'no-store', // Always fetch fresh data for client components
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    }
+    
+    const response = await fetch(url, fetchOptions)
 
     if (!response.ok) {
       throw new Error(`Failed to fetch products: ${response.statusText}`)
@@ -180,28 +242,46 @@ export async function fetchProducts(): Promise<Product[]> {
       throw new Error(apiResponse.message || 'Failed to fetch products')
     }
 
-    // Filter only active products (status === "1") and from last N days based on created_at
-    // DAYS_FILTER = 7, so only products created in the last 7 days will be shown
-    const activeProducts = apiResponse.data.products.filter(p => {
-      const isActive = p.status === '1'
-      const isWithinDays = isWithinLastDays(p.timestamps.created_at, DAYS_FILTER)
-      return isActive && isWithinDays
+    // Filter products from last 7 days based on created_at
+    const productsFromLast7Days = apiResponse.data.products.filter(p => {
+      return isWithinLastDays(p.timestamps.created_at, DAYS_FILTER)
     })
     
-    console.log(`Filtered ${activeProducts.length} products from last ${DAYS_FILTER} days (based on created_at) out of ${apiResponse.data.products.length} total products`)
+    console.log(`Fetched ${productsFromLast7Days.length} products from last ${DAYS_FILTER} days (page ${params?.page || 1})`)
     
-    return activeProducts.map(transformApiProductToProduct)
+    return {
+      products: productsFromLast7Days.map(transformApiProductToProduct),
+      pagination: {
+        currentPage: apiResponse.meta.current_page,
+        lastPage: apiResponse.meta.last_page,
+        perPage: apiResponse.meta.per_page,
+        total: apiResponse.meta.total,
+        from: apiResponse.meta.from,
+        to: apiResponse.meta.to
+      }
+    }
   } catch (error) {
     console.error('Error fetching products:', error)
     // Return empty array on error
-    return []
+    return {
+      products: [],
+      pagination: {
+        currentPage: 1,
+        lastPage: 1,
+        perPage: 12,
+        total: 0,
+        from: 0,
+        to: 0
+      }
+    }
   }
 }
 
 // Fetch single product by ASIN/ID
 export async function fetchProductById(id: string): Promise<Product | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/get-products`, {
+    // Fetch all products without pagination to find the specific product
+    const response = await fetch(`${API_BASE_URL}/get-products?status=1`, {
       next: { revalidate: 60 }
     })
 
