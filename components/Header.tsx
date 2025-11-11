@@ -19,13 +19,13 @@ export default function Header() {
         
         <div className="hidden sm:flex items-center space-x-6">
           <Link href="/" className="text-gray-700 hover:text-purple-600 transition-colors font-medium">
-            Home
+            Startseite
           </Link>
           <Link href="/deals" className="text-gray-700 hover:text-purple-600 transition-colors font-medium">
             Deals
           </Link>
           <Link href="/about" className="text-gray-700 hover:text-purple-600 transition-colors font-medium">
-            About me
+            Über uns
           </Link>
         </div>
 

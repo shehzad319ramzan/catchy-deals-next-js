@@ -22,15 +22,15 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   }
 
   const postedDate = product.postedAt ? new Date(product.postedAt) : null
-  const formattedPostedDate = postedDate
-    ? postedDate.toLocaleString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    : null
+    const formattedPostedDate = postedDate
+      ? postedDate.toLocaleString('de-DE', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      : null
 
   return (
     <main className="min-h-screen bg-white">
@@ -44,7 +44,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Back to deals
+          Zurück zu den Deals
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
@@ -86,12 +86,12 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                 </span>
               </div>
               {formattedPostedDate && (
-                <p className="text-xs text-gray-500">Posted {formattedPostedDate}</p>
+                <p className="text-xs text-gray-500">Veröffentlicht {formattedPostedDate}</p>
               )}
             </div>
 
             <div className="mb-8 p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-100">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Product Description</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Produktbeschreibung</h2>
               <div className="mb-6">
                 {product.description ? (
                   <div className="text-gray-700 leading-relaxed whitespace-pre-wrap break-words">
@@ -99,8 +99,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                   </div>
                 ) : (
                   <p className="text-gray-700 leading-relaxed">
-                    This amazing product offers exceptional value with a significant discount. 
-                    Don&apos;t miss out on this limited-time deal! Get the best quality at an unbeatable price.
+                    Dieses großartige Produkt bietet außergewöhnlichen Wert mit einem erheblichen Rabatt. 
+                    Verpassen Sie nicht dieses zeitlich begrenzte Angebot! Erhalten Sie die beste Qualität zu einem unschlagbaren Preis.
                   </p>
                 )}
               </div>
@@ -127,19 +127,19 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                   <svg className="w-5 h-5 text-purple-600 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 6.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span>High-quality product with premium features</span>
+                  <span>Hochwertiges Produkt mit Premium-Funktionen</span>
                 </li>
                 <li className="flex items-start">
                   <svg className="w-5 h-5 text-purple-600 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 6.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span>Fast and reliable shipping</span>
+                  <span>Schneller und zuverlässiger Versand</span>
                 </li>
                 <li className="flex items-start">
                   <svg className="w-5 h-5 text-purple-600 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 6.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span>30-day money-back guarantee</span>
+                  <span>30-Tage-Geld-zurück-Garantie</span>
                 </li>
               </ul>
             </div>
@@ -151,7 +151,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
-                <span>Add to Wishlist</span>
+                <span>Zur Wunschliste hinzufügen</span>
               </button>
             </div>
           </div>

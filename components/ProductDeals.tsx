@@ -34,7 +34,7 @@ export default function ProductDeals() {
         setTotalPages(result.pagination.lastPage)
         setTotalProducts(result.pagination.total)
       } catch (err) {
-        setError('Failed to load products. Please try again later.')
+        setError('Fehler beim Laden der Produkte. Bitte versuchen Sie es später erneut.')
         console.error('Error loading products:', err)
       } finally {
         setLoading(false)
@@ -60,15 +60,15 @@ export default function ProductDeals() {
       <section id="deals-section" className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
         <div className="mb-8 md:mb-12">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
-            Current top deals
+            Aktuelle Top-Deals
           </h2>
           <p className="text-gray-600 text-base sm:text-lg lg:text-xl">
-            Top bargains with real discounts - freshly compiled for you every day.
+            Top-Schnäppchen mit echten Rabatten - täglich frisch für Sie zusammengestellt.
           </p>
         </div>
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-          <p className="text-gray-500 text-lg mt-4">Loading products...</p>
+          <p className="text-gray-500 text-lg mt-4">Produkte werden geladen...</p>
         </div>
       </section>
     )
@@ -91,7 +91,7 @@ export default function ProductDeals() {
             onClick={() => setCurrentPage(1)}
             className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all"
           >
-            Try Again
+            Erneut versuchen
           </button>
         </div>
       </section>
@@ -102,16 +102,16 @@ export default function ProductDeals() {
     <section id="deals-section" className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
       <div className="mb-8 md:mb-12">
         <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
-          Current top deals
+          Aktuelle Top-Deals
         </h2>
         <p className="text-gray-600 text-base sm:text-lg lg:text-xl">
-          Top bargains with real discounts - freshly compiled for you every day.
+          Top-Schnäppchen mit echten Rabatten - täglich frisch für Sie zusammengestellt.
         </p>
       </div>
 
       {products.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">No products available at the moment.</p>
+          <p className="text-gray-500 text-lg">Derzeit sind keine Produkte verfügbar.</p>
         </div>
       ) : (
         <>
@@ -134,7 +134,7 @@ export default function ProductDeals() {
                       : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
                   }`}
                 >
-                  Previous
+                  Zurück
                 </button>
                 
                 <div className="flex items-center space-x-1">
@@ -182,12 +182,12 @@ export default function ProductDeals() {
                       : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
                   }`}
                 >
-                  Next
+                  Weiter
                 </button>
               </div>
               
               <p className="text-sm text-gray-600">
-                Page {currentPage} of {totalPages} ({totalProducts} total products from last 7 days)
+                Seite {currentPage} von {totalPages} ({totalProducts} Produkte aus den letzten 7 Tagen)
               </p>
             </div>
           )}

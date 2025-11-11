@@ -61,7 +61,7 @@ export default function MarketplaceButtons({ affiliateLinks, regionalPrices }: M
 
   return (
     <div className="space-y-3">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">Available on:</h3>
+      <h3 className="text-lg font-semibold text-gray-800 mb-4">Verfügbar bei:</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {availableMarketplaces.map(marketplace => {
           const link = affiliateLinks[marketplace.key as keyof typeof affiliateLinks]!
