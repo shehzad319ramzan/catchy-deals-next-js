@@ -1,21 +1,22 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import ProductCard from './ProductCard'
 import Disclaimer from './Disclaimer'
 import { Product } from '@/types/product'
 
 interface ProductDealsProps {
-  products: Product[]
+  products?: Product[]
 }
 
-export default function ProductDeals({ products }: ProductDealsProps) {
+export default function ProductDeals({ products = [] }: ProductDealsProps) {
   const [currentPage, setCurrentPage] = useState(1)
   // Always show 12 products per page (4 columns × 3 rows)
   const itemsPerPage = 12
   
   // Sort products by latest first (postedAt descending)
   const sortedProducts = useMemo(() => {
+    if (!products || products.length === 0) return []
     return [...products].sort((a, b) => {
       if (!a.postedAt && !b.postedAt) return 0
       if (!a.postedAt) return 1
@@ -27,10 +28,18 @@ export default function ProductDeals({ products }: ProductDealsProps) {
   const totalPages = Math.ceil(sortedProducts.length / itemsPerPage)
   
   const paginatedProducts = useMemo(() => {
+    if (sortedProducts.length === 0) return []
     const startIndex = (currentPage - 1) * itemsPerPage
     const endIndex = startIndex + itemsPerPage
     return sortedProducts.slice(startIndex, endIndex)
   }, [sortedProducts, currentPage, itemsPerPage])
+  
+  // Reset to page 1 if current page is out of bounds
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1)
+    }
+  }, [currentPage, totalPages])
 
   const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages) {
