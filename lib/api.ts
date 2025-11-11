@@ -145,12 +145,22 @@ export function transformApiProductToProduct(apiProduct: ApiProduct): Product {
   }
 }
 
-// Helper function to check if product is within last N days
-function isWithinLastDays(postedAt: string, days: number): boolean {
-  const postedDate = new Date(postedAt)
+// Helper function to check if product is within last N days based on created_at
+function isWithinLastDays(createdAt: string, days: number): boolean {
+  if (!createdAt) return false
+  
+  const createdDate = new Date(createdAt)
+  // Check if date is valid
+  if (isNaN(createdDate.getTime())) {
+    console.warn(`Invalid created_at date: ${createdAt}`)
+    return false
+  }
+  
   const now = new Date()
   const daysAgo = new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
-  return postedDate >= daysAgo
+  
+  // Check if created_at is within the last N days (createdDate should be >= daysAgo and <= now)
+  return createdDate >= daysAgo && createdDate <= now
 }
 
 // Fetch all products
@@ -171,11 +181,14 @@ export async function fetchProducts(): Promise<Product[]> {
     }
 
     // Filter only active products (status === "1") and from last N days based on created_at
+    // DAYS_FILTER = 7, so only products created in the last 7 days will be shown
     const activeProducts = apiResponse.data.products.filter(p => {
       const isActive = p.status === '1'
       const isWithinDays = isWithinLastDays(p.timestamps.created_at, DAYS_FILTER)
       return isActive && isWithinDays
     })
+    
+    console.log(`Filtered ${activeProducts.length} products from last ${DAYS_FILTER} days (based on created_at) out of ${apiResponse.data.products.length} total products`)
     
     return activeProducts.map(transformApiProductToProduct)
   } catch (error) {
