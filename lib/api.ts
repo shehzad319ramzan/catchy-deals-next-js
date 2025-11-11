@@ -194,15 +194,17 @@ export async function fetchProducts(params?: FetchProductsParams): Promise<{
     queryParams.append('per_page', String(params?.perPage || 12))
     queryParams.append('page', String(params?.page || 1))
     
-    // Add sorting
+    // Add sorting - default to created_at desc (latest first)
     if (params?.sortBy) {
       queryParams.append('sort_by', params.sortBy)
+    } else {
+      // Default: sort by created_at desc (latest uploaded first)
+      queryParams.append('sort_by', 'created_at')
     }
     if (params?.sortOrder) {
       queryParams.append('sort_order', params.sortOrder)
     } else {
-      // Default: sort by created_at desc (newest first)
-      queryParams.append('sort_by', 'created_at')
+      // Default: desc (newest/latest first)
       queryParams.append('sort_order', 'desc')
     }
     
