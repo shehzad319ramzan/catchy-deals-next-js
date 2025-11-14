@@ -144,7 +144,7 @@ export function transformApiProductToProduct(apiProduct: ApiProduct): Product {
     asin: apiProduct.asin,
     ean: apiProduct.ean,
     description: apiProduct.description,
-    postedAt: apiProduct.timestamps.posted_at,
+    postedAt: apiProduct.timestamps.created_at,
     affiliateLinks,
     regionalPrices: {
       de: apiProduct.regional_pricing.de_price ? parseFloat(apiProduct.regional_pricing.de_price) : undefined,
