@@ -28,7 +28,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           month: 'short',
           year: 'numeric',
           hour: '2-digit',
-          minute: '2-digit'
+          minute: '2-digit',
+          timeZone: 'Europe/Berlin'
         })
       : null
 
