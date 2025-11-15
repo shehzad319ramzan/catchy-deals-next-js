@@ -17,7 +17,31 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'backend.catchy-deals.de/api/v1',
+        hostname: 'backend.catchy-deals.de',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'm.media-amazon.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images-na.ssl-images-amazon.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images-eu.ssl-images-amazon.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.amazonaws.com',
         port: '',
         pathname: '/**',
       },

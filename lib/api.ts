@@ -135,8 +135,8 @@ export function transformApiProductToProduct(apiProduct: ApiProduct): Product {
 
   return {
     id: apiProduct.asin, // Use ASIN as ID
-    title: apiProduct.title,
-    image: apiProduct.img_url,
+    title: apiProduct.title || 'Untitled Product',
+    image: apiProduct.img_url || '/placeholder-image.png',
     currentPrice: `€${currentPrice.toFixed(2)}`,
     originalPrice: `€${originalPrice.toFixed(2)}`,
     discount: `-${discountPercent}%`,
