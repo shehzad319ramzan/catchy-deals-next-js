@@ -79,16 +79,10 @@ export default function Footer() {
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-white mb-4">Firmendaten</h3>
             <div className="text-gray-300 text-sm space-y-2">
-              <p className="font-semibold text-white">Grimme und Köninger GbR</p>
-              <p>c/o Postflex #8701</p>
-              <p>Emsdettener Str. 10</p>
-              <p>48268 Greven</p>
-              <p className="pt-2 border-t border-white/20">
-                <span className="font-semibold">USt-ID:</span> DE454237083
-              </p>
-              <p className="text-yellow-300 text-xs font-semibold pt-2">
-                ⚠️ Keine Pakete oder Päckchen - Annahme wird verweigert!
-              </p>
+              <p className="font-semibold text-white">Flipscope</p>
+              <p>Sara Köninger</p>
+              <p>Häuserweg 8</p>
+              <p>76698 Ubstadt-Weiher</p>
             </div>
           </div>
         </div>

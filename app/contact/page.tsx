@@ -16,10 +16,10 @@ export default function ContactPage() {
             
             <div className="space-y-4">
               <div>
-                <p className="font-semibold text-gray-900 mb-1">Grimme und Köninger GbR</p>
-                <p>c/o Postflex #8701</p>
-                <p>Emsdettener Str. 10</p>
-                <p>48268 Greven</p>
+                <p className="font-semibold text-gray-900 mb-1">Flipscope</p>
+                <p>Sara Köninger</p>
+                <p>Häuserweg 8</p>
+                <p>76698 Ubstadt-Weiher</p>
               </div>
               
               <div className="pt-4 border-t border-purple-200">
@@ -35,11 +35,6 @@ export default function ContactPage() {
                     info@catchycreatorsclub.de
                   </a>
                 </p>
-              </div>
-              
-              <div className="pt-4 border-t border-purple-200">
-                <p className="font-semibold text-red-600">Wichtig:</p>
-                <p className="text-red-600">Keine Pakete oder Päckchen - Annahme wird verweigert!</p>
               </div>
             </div>
           </div>
