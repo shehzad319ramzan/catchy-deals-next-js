@@ -1,7 +1,7 @@
 const API_BASE_URL = 'https://backend.catchy-deals.de/api/v1'
 
-// Days filter - will be made dynamic later via API parameter
-const DAYS_FILTER = 7
+// Hours filter - only show products from last 48 hours
+const HOURS_FILTER = 48
 
 const MARKETPLACE_CONFIG = {
   de: { domain: 'de', tag: 'catchydeal041-21' },
@@ -155,9 +155,11 @@ export function transformApiProductToProduct(apiProduct: ApiProduct): Product {
   }
 }
 
-// Helper function to check if product is within last N days based on created_at
-function isWithinLastDays(createdAt: string, days: number): boolean {
-  if (!createdAt) return false
+// Helper function to check if product is within last N hours based on created_at
+function isWithinLastHours(createdAt: string, hours: number): boolean {
+  if (!createdAt) {
+    return false
+  }
   
   const createdDate = new Date(createdAt)
   // Check if date is valid
@@ -167,10 +169,14 @@ function isWithinLastDays(createdAt: string, days: number): boolean {
   }
   
   const now = new Date()
-  const daysAgo = new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
+  // Calculate the timestamp 48 hours ago (hours * 60 minutes * 60 seconds * 1000 milliseconds)
+  const hoursAgo = new Date(now.getTime() - hours * 60 * 60 * 1000)
   
-  // Check if created_at is within the last N days (createdDate should be >= daysAgo and <= now)
-  return createdDate >= daysAgo && createdDate <= now
+  // Check if created_at is within the last N hours
+  // Product must be created after (now - 48 hours) and before or equal to now
+  const isWithinRange = createdDate >= hoursAgo && createdDate <= now
+  
+  return isWithinRange
 }
 
 // Fetch products with pagination support
@@ -244,15 +250,19 @@ export async function fetchProducts(params?: FetchProductsParams): Promise<{
       throw new Error(apiResponse.message || 'Failed to fetch products')
     }
 
-    // Filter products from last 7 days based on created_at
-    const productsFromLast7Days = apiResponse.data.products.filter(p => {
-      return isWithinLastDays(p.timestamps.created_at, DAYS_FILTER)
+    // Filter products from last 48 hours based on created_at
+    const productsFromLast48Hours = apiResponse.data.products.filter(p => {
+      if (!p.timestamps || !p.timestamps.created_at) {
+        return false
+      }
+      return isWithinLastHours(p.timestamps.created_at, HOURS_FILTER)
     })
     
-    console.log(`Fetched ${productsFromLast7Days.length} products from last ${DAYS_FILTER} days (page ${params?.page || 1})`)
+    console.log(`Total products from API: ${apiResponse.data.products.length}`)
+    console.log(`Products from last ${HOURS_FILTER} hours (based on created_at): ${productsFromLast48Hours.length} (page ${params?.page || 1})`)
     
     return {
-      products: productsFromLast7Days.map(transformApiProductToProduct),
+      products: productsFromLast48Hours.map(transformApiProductToProduct),
       pagination: {
         currentPage: apiResponse.meta.current_page,
         lastPage: apiResponse.meta.last_page,

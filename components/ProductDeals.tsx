@@ -187,7 +187,7 @@ export default function ProductDeals() {
               </div>
               
               <p className="text-sm text-gray-600">
-                Seite {currentPage} von {totalPages} ({totalProducts} Produkte aus den letzten 7 Tagen)
+                Seite {currentPage} von {totalPages} ({totalProducts} Produkte aus den letzten 48 Stunden)
               </p>
             </div>
           )}
