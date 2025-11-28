@@ -61,9 +61,11 @@ export default function ProductCard({ product }: ProductCardProps) {
           <span className="text-sm sm:text-base text-gray-400 line-through">
             {product.originalPrice}
           </span>
-          <span className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs sm:text-sm font-semibold px-2 py-1 rounded">
-            {product.discount}
-          </span>
+          {product.discount && product.discount.trim() !== '' && (
+            <span className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs sm:text-sm font-semibold px-2 py-1 rounded">
+              {product.discount}
+            </span>
+          )}
         </div>
 
         <div className="mt-auto">

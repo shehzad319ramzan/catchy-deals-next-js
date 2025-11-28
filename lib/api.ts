@@ -133,13 +133,16 @@ export function transformApiProductToProduct(apiProduct: ApiProduct): Product {
   addAffiliateLink('it', apiProduct.regional_pricing.it_price)
   addAffiliateLink('es', apiProduct.regional_pricing.es_price)
 
+  // Only show discount if it's greater than 0%
+  const discountString = discountPercent > 0 ? `-${discountPercent}%` : ''
+
   return {
     id: apiProduct.asin, // Use ASIN as ID
     title: apiProduct.title || 'Untitled Product',
     image: apiProduct.img_url || '/placeholder-image.png',
     currentPrice: `€${currentPrice.toFixed(2)}`,
     originalPrice: `€${originalPrice.toFixed(2)}`,
-    discount: `-${discountPercent}%`,
+    discount: discountString,
     category: 'General', // You may want to add category to API
     asin: apiProduct.asin,
     ean: apiProduct.ean,

@@ -90,9 +90,11 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                 <span className="text-xl sm:text-2xl text-gray-400 line-through">
                   {product.originalPrice}
                 </span>
-                <span className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-base sm:text-lg font-semibold px-4 py-2 rounded">
-                  {product.discount}
-                </span>
+                {product.discount && product.discount.trim() !== '' && (
+                  <span className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-base sm:text-lg font-semibold px-4 py-2 rounded">
+                    {product.discount}
+                  </span>
+                )}
               </div>
               {formattedPostedDate && (
                 <p className="text-xs text-gray-500">Veröffentlicht {formattedPostedDate}</p>
