@@ -274,12 +274,18 @@ export async function fetchProducts(params?: FetchProductsParams): Promise<{
       return true
     })
     
+    // Sort by created_at to ensure consistent ordering (newest first)
+    const sortedProducts = uniqueProducts.sort((a, b) => {
+      if (!a.postedAt || !b.postedAt) return 0
+      return new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime()
+    })
+    
     console.log(`Total products from API: ${apiResponse.data.products.length}`)
     console.log(`Products from last ${HOURS_FILTER} hours (based on created_at): ${productsFromLast48Hours.length}`)
-    console.log(`Unique products after deduplication: ${uniqueProducts.length} (page ${params?.page || 1})`)
+    console.log(`Unique products after deduplication: ${sortedProducts.length} (page ${params?.page || 1})`)
     
     return {
-      products: uniqueProducts,
+      products: sortedProducts,
       pagination: {
         currentPage: apiResponse.meta.current_page,
         lastPage: apiResponse.meta.last_page,
