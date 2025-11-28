@@ -22,8 +22,12 @@ export default function ProductDeals() {
       setError(null)
       
       try {
+        // Limit to maximum 4 pages (48 products total)
+        const maxPages = 4
+        const limitedPage = Math.min(currentPage, maxPages)
+        
         const result = await fetchProducts({
-          page: currentPage,
+          page: limitedPage,
           perPage: itemsPerPage,
           sortBy: 'created_at',
           sortOrder: 'desc',
@@ -31,8 +35,14 @@ export default function ProductDeals() {
         })
         
         setProducts(result.products)
-        setTotalPages(result.pagination.lastPage)
+        const limitedTotalPages = Math.min(result.pagination.lastPage, maxPages)
+        setTotalPages(limitedTotalPages)
         setTotalProducts(result.pagination.total)
+        
+        // If user tried to access page > 4, reset to page 4
+        if (currentPage > maxPages) {
+          setCurrentPage(maxPages)
+        }
       } catch (err) {
         setError('Fehler beim Laden der Produkte. Bitte versuchen Sie es später erneut.')
         console.error('Error loading products:', err)
@@ -45,8 +55,11 @@ export default function ProductDeals() {
   }, [currentPage, itemsPerPage])
 
   const goToPage = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page)
+    // Limit to maximum 4 pages
+    const maxPages = 4
+    const limitedPage = Math.min(page, maxPages)
+    if (limitedPage >= 1 && limitedPage <= totalPages) {
+      setCurrentPage(limitedPage)
       // Scroll to top of deals section
       const dealsSection = document.getElementById('deals-section')
       if (dealsSection) {
@@ -138,46 +151,29 @@ export default function ProductDeals() {
                 </button>
                 
                 <div className="flex items-center space-x-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                    // Show first page, last page, current page, and pages around current
-                    if (
-                      page === 1 ||
-                      page === totalPages ||
-                      (page >= currentPage - 1 && page <= currentPage + 1)
-                    ) {
-                      return (
-                        <button
-                          key={page}
-                          onClick={() => goToPage(page)}
-                          disabled={loading}
-                          className={`w-10 h-10 rounded-lg font-semibold transition-all ${
-                            currentPage === page
-                              ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                          {page}
-                        </button>
-                      )
-                    } else if (
-                      page === currentPage - 2 ||
-                      page === currentPage + 2
-                    ) {
-                      return (
-                        <span key={page} className="px-2 text-gray-400">
-                          ...
-                        </span>
-                      )
-                    }
-                    return null
+                  {Array.from({ length: Math.min(totalPages, 4) }, (_, i) => i + 1).map((page) => {
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => goToPage(page)}
+                        disabled={loading}
+                        className={`w-10 h-10 rounded-lg font-semibold transition-all ${
+                          currentPage === page
+                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        {page}
+                      </button>
+                    )
                   })}
                 </div>
 
                 <button
                   onClick={() => goToPage(currentPage + 1)}
-                  disabled={currentPage === totalPages || loading}
+                  disabled={currentPage >= Math.min(totalPages, 4) || loading}
                   className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                    currentPage === totalPages || loading
+                    currentPage >= Math.min(totalPages, 4) || loading
                       ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                       : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
                   }`}
@@ -187,7 +183,7 @@ export default function ProductDeals() {
               </div>
               
               <p className="text-sm text-gray-600">
-                Seite {currentPage} von {totalPages} ({totalProducts} Produkte aus den letzten 48 Stunden)
+                Seite {currentPage} von {Math.min(totalPages, 4)} ({totalProducts} Produkte aus den letzten 48 Stunden)
               </p>
             </div>
           )}
