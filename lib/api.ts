@@ -261,11 +261,25 @@ export async function fetchProducts(params?: FetchProductsParams): Promise<{
       return isWithinLastHours(p.timestamps.created_at, HOURS_FILTER)
     })
     
+    // Transform to Product format
+    const transformedProducts = productsFromLast48Hours.map(transformApiProductToProduct)
+    
+    // Remove duplicates based on product ID (ASIN) - keep only the first occurrence
+    const seenIds = new Set<string>()
+    const uniqueProducts = transformedProducts.filter(product => {
+      if (!product.id || seenIds.has(product.id)) {
+        return false
+      }
+      seenIds.add(product.id)
+      return true
+    })
+    
     console.log(`Total products from API: ${apiResponse.data.products.length}`)
-    console.log(`Products from last ${HOURS_FILTER} hours (based on created_at): ${productsFromLast48Hours.length} (page ${params?.page || 1})`)
+    console.log(`Products from last ${HOURS_FILTER} hours (based on created_at): ${productsFromLast48Hours.length}`)
+    console.log(`Unique products after deduplication: ${uniqueProducts.length} (page ${params?.page || 1})`)
     
     return {
-      products: productsFromLast48Hours.map(transformApiProductToProduct),
+      products: uniqueProducts,
       pagination: {
         currentPage: apiResponse.meta.current_page,
         lastPage: apiResponse.meta.last_page,
