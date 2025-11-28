@@ -181,10 +181,6 @@ export default function ProductDeals() {
                   Weiter
                 </button>
               </div>
-              
-              <p className="text-sm text-gray-600">
-                Seite {currentPage} von {Math.min(totalPages, 4)} ({totalProducts} Produkte aus den letzten 48 Stunden)
-              </p>
             </div>
           )}
 
