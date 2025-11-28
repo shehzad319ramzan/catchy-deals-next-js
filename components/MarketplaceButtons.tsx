@@ -16,28 +16,28 @@ interface MarketplaceButtonsProps {
 const marketplaces = [
   {
     key: 'de',
-    name: 'Amazon.de',
+    name: 'Amazon.de*',
     flag: '🇩🇪',
     country: 'Germany',
     color: 'from-yellow-400 to-yellow-600'
   },
   {
     key: 'fr',
-    name: 'Amazon.fr',
+    name: 'Amazon.fr*',
     flag: '🇫🇷',
     country: 'France',
     color: 'from-blue-400 to-blue-600'
   },
   {
     key: 'it',
-    name: 'Amazon.it',
+    name: 'Amazon.it*',
     flag: '🇮🇹',
     country: 'Italy',
     color: 'from-green-400 to-green-600'
   },
   {
     key: 'es',
-    name: 'Amazon.es',
+    name: 'Amazon.es*',
     flag: '🇪🇸',
     country: 'Spain',
     color: 'from-red-400 to-red-600'

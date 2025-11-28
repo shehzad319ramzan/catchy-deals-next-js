@@ -1,3 +1,5 @@
+import Image from 'next/image'
+
 export default function DealFinders() {
   const teamMembers = [
     {
@@ -39,11 +41,13 @@ export default function DealFinders() {
           >
             <div className="flex flex-col items-center text-center">
               <div className="relative mb-6">
-                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-purple-100 shadow-md">
-                  <img
+                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-purple-100 shadow-md relative">
+                  <Image
                     src={member.image}
                     alt={member.name}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
+                    unoptimized
                   />
                 </div>
               </div>
