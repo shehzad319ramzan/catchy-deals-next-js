@@ -7,6 +7,7 @@ import { Product } from '@/types/product'
 import { fetchProducts } from '@/lib/api'
 
 export default function ProductDeals() {
+  const [allProducts, setAllProducts] = useState<Product[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
@@ -15,34 +16,32 @@ export default function ProductDeals() {
   const [error, setError] = useState<string | null>(null)
   
   const itemsPerPage = 12 // 4 columns × 3 rows
+  const maxPages = 4 // Maximum 4 pages (48 products total)
 
+  // Fetch all unique products from last 48 hours once
   useEffect(() => {
-    const loadProducts = async () => {
+    const loadAllProducts = async () => {
       setLoading(true)
       setError(null)
       
       try {
-        // Limit to maximum 4 pages (48 products total)
-        const maxPages = 4
-        const limitedPage = Math.min(currentPage, maxPages)
-        
+        // Fetch all products with a high limit to get all unique products from last 48 hours
         const result = await fetchProducts({
-          page: limitedPage,
-          perPage: itemsPerPage,
+          page: 1,
+          perPage: 200, // Fetch many products to ensure we get all unique ones
           sortBy: 'created_at',
           sortOrder: 'desc',
           status: '1'
         })
         
-        setProducts(result.products)
-        const limitedTotalPages = Math.min(result.pagination.lastPage, maxPages)
-        setTotalPages(limitedTotalPages)
-        setTotalProducts(result.pagination.total)
+        // Products are already deduplicated and sorted in fetchProducts
+        setAllProducts(result.products)
+        setTotalProducts(result.products.length)
         
-        // If user tried to access page > 4, reset to page 4
-        if (currentPage > maxPages) {
-          setCurrentPage(maxPages)
-        }
+        // Calculate total pages based on unique products (max 4 pages)
+        const calculatedTotalPages = Math.min(Math.ceil(result.products.length / itemsPerPage), maxPages)
+        setTotalPages(calculatedTotalPages)
+        
       } catch (err) {
         setError('Fehler beim Laden der Produkte. Bitte versuchen Sie es später erneut.')
         console.error('Error loading products:', err)
@@ -51,8 +50,29 @@ export default function ProductDeals() {
       }
     }
 
-    loadProducts()
-  }, [currentPage, itemsPerPage])
+    loadAllProducts()
+  }, [])
+
+  // Paginate products client-side
+  useEffect(() => {
+    if (allProducts.length === 0) {
+      setProducts([])
+      return
+    }
+
+    // Calculate pagination
+    const limitedPage = Math.min(currentPage, maxPages)
+    const startIndex = (limitedPage - 1) * itemsPerPage
+    const endIndex = startIndex + itemsPerPage
+    const paginatedProducts = allProducts.slice(startIndex, endIndex)
+    
+    setProducts(paginatedProducts)
+    
+    // If user tried to access page > maxPages, reset to maxPages
+    if (currentPage > maxPages) {
+      setCurrentPage(maxPages)
+    }
+  }, [allProducts, currentPage, itemsPerPage])
 
   const goToPage = (page: number) => {
     // Limit to maximum 4 pages

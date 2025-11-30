@@ -282,7 +282,7 @@ export async function fetchProducts(params?: FetchProductsParams): Promise<{
     
     console.log(`Total products from API: ${apiResponse.data.products.length}`)
     console.log(`Products from last ${HOURS_FILTER} hours (based on created_at): ${productsFromLast48Hours.length}`)
-    console.log(`Unique products after deduplication: ${sortedProducts.length} (page ${params?.page || 1})`)
+    console.log(`Unique products after deduplication: ${sortedProducts.length}`)
     
     return {
       products: sortedProducts,
@@ -290,7 +290,7 @@ export async function fetchProducts(params?: FetchProductsParams): Promise<{
         currentPage: apiResponse.meta.current_page,
         lastPage: apiResponse.meta.last_page,
         perPage: apiResponse.meta.per_page,
-        total: apiResponse.meta.total,
+        total: sortedProducts.length, // Use deduplicated count
         from: apiResponse.meta.from,
         to: apiResponse.meta.to
       }
