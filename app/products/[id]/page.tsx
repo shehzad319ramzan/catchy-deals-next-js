@@ -5,20 +5,35 @@ import Disclaimer from '@/components/Disclaimer'
 import { fetchProductById } from '@/lib/api'
 import Image from 'next/image'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 
 interface ProductDetailPageProps {
   params: Promise<{
     id: string
   }>
+  searchParams: Promise<{
+    market?: string
+  }>
 }
 
-export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
+export default async function ProductDetailPage({ params, searchParams }: ProductDetailPageProps) {
   const { id } = await params
+  const { market } = await searchParams
   const product = await fetchProductById(id)
 
   if (!product) {
     notFound()
+  }
+
+  // If market parameter exists, redirect to Amazon marketplace
+  if (market && product.affiliateLinks) {
+    const validMarkets: Array<'de' | 'fr' | 'it' | 'es'> = ['de', 'fr', 'it', 'es']
+    const marketKey = market.toLowerCase() as 'de' | 'fr' | 'it' | 'es'
+    
+    if (validMarkets.includes(marketKey) && product.affiliateLinks[marketKey]) {
+      // Redirect to Amazon marketplace
+      redirect(product.affiliateLinks[marketKey])
+    }
   }
 
   const postedDate = product.postedAt ? new Date(product.postedAt) : null
