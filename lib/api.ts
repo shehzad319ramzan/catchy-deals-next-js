@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://backend.catchy-deals.de/api/v1'
+const API_BASE_URL = 'https://backendnamecheap.freshusdeals.com/api/v1'
 
 // Hours filter - only show products from last 48 hours
 const HOURS_FILTER = 48
