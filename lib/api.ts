@@ -233,12 +233,14 @@ export async function fetchProducts(params?: FetchProductsParams): Promise<{
 
     const url = `${API_BASE_URL}/get-products?${queryParams.toString()}`
     
-    // Use cache: 'no-store' for client components, or next: { revalidate } for server components
+    // Optimize fetch for faster loading
     const fetchOptions: RequestInit = {
-      cache: 'no-store', // Always fetch fresh data for client components
+      cache: 'no-store', // Always fetch fresh data
       headers: {
         'Content-Type': 'application/json',
-      }
+      },
+      // Add priority hint for faster loading
+      priority: 'high'
     }
     
     const response = await fetch(url, fetchOptions)
@@ -253,26 +255,18 @@ export async function fetchProducts(params?: FetchProductsParams): Promise<{
       throw new Error(apiResponse.message || 'Failed to fetch products')
     }
 
-    // Filter products from last 48 hours based on created_at
-    const productsFromLast48Hours = apiResponse.data.products.filter(p => {
-      if (!p.timestamps || !p.timestamps.created_at) {
-        return false
-      }
-      return isWithinLastHours(p.timestamps.created_at, HOURS_FILTER)
-    })
-    
-    // Transform to Product format
-    const transformedProducts = productsFromLast48Hours.map(transformApiProductToProduct)
+    // Transform all products to Product format (no time filter - show all products)
+    const transformedProducts = apiResponse.data.products.map(transformApiProductToProduct)
     
     // Remove duplicates based on product ID (ASIN) - keep only the first occurrence
-    const seenIds = new Set<string>()
-    const uniqueProducts = transformedProducts.filter(product => {
-      if (!product.id || seenIds.has(product.id)) {
-        return false
+    // Use Map for faster O(1) lookup instead of Set + filter
+    const uniqueProductsMap = new Map<string, Product>()
+    for (const product of transformedProducts) {
+      if (product.id && !uniqueProductsMap.has(product.id)) {
+        uniqueProductsMap.set(product.id, product)
       }
-      seenIds.add(product.id)
-      return true
-    })
+    }
+    const uniqueProducts = Array.from(uniqueProductsMap.values())
     
     // Sort by created_at to ensure consistent ordering (newest first)
     const sortedProducts = uniqueProducts.sort((a, b) => {
@@ -281,8 +275,7 @@ export async function fetchProducts(params?: FetchProductsParams): Promise<{
     })
     
     console.log(`Total products from API: ${apiResponse.data.products.length}`)
-    console.log(`Products from last ${HOURS_FILTER} hours (based on created_at): ${productsFromLast48Hours.length}`)
-    console.log(`Unique products after deduplication: ${sortedProducts.length}`)
+    console.log(`Unique products after deduplication: ${sortedProducts.length} (page ${params?.page || 1})`)
     
     return {
       products: sortedProducts,

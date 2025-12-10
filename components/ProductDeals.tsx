@@ -7,72 +7,64 @@ import { Product } from '@/types/product'
 import { fetchProducts } from '@/lib/api'
 
 export default function ProductDeals() {
-  const [allProducts, setAllProducts] = useState<Product[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalProducts, setTotalProducts] = useState(0)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true) // Show skeleton on initial load
   const [error, setError] = useState<string | null>(null)
   
   const itemsPerPage = 12 // 4 columns × 3 rows
   const maxPages = 4 // Maximum 4 pages (48 products total)
 
-  // Fetch all unique products from last 48 hours once
+  // Load products in chunks for faster initial display
   useEffect(() => {
-    const loadAllProducts = async () => {
-      setLoading(true)
+    let isMounted = true
+    
+    const loadProducts = async () => {
+      if (currentPage === 1) {
+        setLoading(true) // Show skeleton only on first page
+      }
       setError(null)
       
       try {
-        // Fetch all products with a high limit to get all unique products from last 48 hours
+        // Fetch products for current page
         const result = await fetchProducts({
-          page: 1,
-          perPage: 200, // Fetch many products to ensure we get all unique ones
+          page: currentPage,
+          perPage: itemsPerPage,
           sortBy: 'created_at',
           sortOrder: 'desc',
           status: '1'
         })
         
-        // Products are already deduplicated and sorted in fetchProducts
-        setAllProducts(result.products)
-        setTotalProducts(result.products.length)
-        
-        // Calculate total pages based on unique products (max 4 pages)
-        const calculatedTotalPages = Math.min(Math.ceil(result.products.length / itemsPerPage), maxPages)
-        setTotalPages(calculatedTotalPages)
+        // Only update if component is still mounted
+        if (isMounted) {
+          // Set products immediately
+          setProducts(result.products)
+          setTotalProducts(result.pagination.total)
+          
+          // Calculate total pages (max 4 pages)
+          const calculatedTotalPages = Math.min(result.pagination.lastPage, maxPages)
+          setTotalPages(calculatedTotalPages)
+          setLoading(false)
+        }
         
       } catch (err) {
-        setError('Fehler beim Laden der Produkte. Bitte versuchen Sie es später erneut.')
-        console.error('Error loading products:', err)
-      } finally {
-        setLoading(false)
+        if (isMounted) {
+          setError('Fehler beim Laden der Produkte. Bitte versuchen Sie es später erneut.')
+          console.error('Error loading products:', err)
+          setLoading(false)
+        }
       }
     }
 
-    loadAllProducts()
-  }, [])
-
-  // Paginate products client-side
-  useEffect(() => {
-    if (allProducts.length === 0) {
-      setProducts([])
-      return
-    }
-
-    // Calculate pagination
-    const limitedPage = Math.min(currentPage, maxPages)
-    const startIndex = (limitedPage - 1) * itemsPerPage
-    const endIndex = startIndex + itemsPerPage
-    const paginatedProducts = allProducts.slice(startIndex, endIndex)
+    loadProducts()
     
-    setProducts(paginatedProducts)
-    
-    // If user tried to access page > maxPages, reset to maxPages
-    if (currentPage > maxPages) {
-      setCurrentPage(maxPages)
+    // Cleanup
+    return () => {
+      isMounted = false
     }
-  }, [allProducts, currentPage, itemsPerPage])
+  }, [currentPage, itemsPerPage])
 
   const goToPage = (page: number) => {
     // Limit to maximum 4 pages
@@ -88,24 +80,8 @@ export default function ProductDeals() {
     }
   }
 
-  if (loading) {
-    return (
-      <section id="deals-section" className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
-        <div className="mb-8 md:mb-12">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
-            Aktuelle Top-Deals
-          </h2>
-          <p className="text-gray-600 text-base sm:text-lg lg:text-xl">
-            Top-Schnäppchen mit echten Rabatten - täglich frisch für Sie zusammengestellt.
-          </p>
-        </div>
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-          <p className="text-gray-500 text-lg mt-4">Produkte werden geladen...</p>
-        </div>
-      </section>
-    )
-  }
+  // Show skeleton loading only if no products and not on initial load
+  const showSkeleton = loading && products.length === 0
 
   if (error) {
     return (
@@ -142,7 +118,20 @@ export default function ProductDeals() {
         </p>
       </div>
 
-      {products.length === 0 ? (
+      {showSkeleton ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-lg shadow-md border border-gray-100 animate-pulse">
+              <div className="aspect-square w-full bg-gray-200"></div>
+              <div className="p-4 sm:p-6 space-y-3">
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : products.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">Derzeit sind keine Produkte verfügbar.</p>
         </div>
