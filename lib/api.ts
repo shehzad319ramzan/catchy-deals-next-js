@@ -308,51 +308,104 @@ export async function fetchProducts(params?: FetchProductsParams): Promise<{
 // Fetch single product by ASIN/ID
 export async function fetchProductById(id: string): Promise<Product | null> {
   try {
-    // Fetch products with high limit to find the specific product
-    // Try multiple pages if needed
-    let page = 1
-    const maxPagesToSearch = 10 // Search up to 10 pages
-    const perPage = 100 // Fetch 100 products per page for faster search
-    
-    while (page <= maxPagesToSearch) {
-      const response = await fetch(`${API_BASE_URL}/get-products?status=1&page=${page}&per_page=${perPage}&paginate=true`, {
-        next: { revalidate: 60 }
-      })
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch products: ${response.statusText}`)
-      }
-
-      const apiResponse: ApiResponse = await response.json()
-      
-      if (!apiResponse.success || !apiResponse.data.products) {
-        throw new Error(apiResponse.message || 'Failed to fetch products')
-      }
-
-      // Find product by ASIN/EAN/ID and filter active products
-      // Normalize the ID for comparison (trim whitespace, case insensitive)
-      const normalizedId = id.trim().toUpperCase()
-      const apiProduct = apiResponse.data.products.find(p => {
-        const productAsin = p.asin?.trim().toUpperCase()
-        const productEan = p.ean?.trim().toUpperCase()
-        const productId = p.id?.trim().toUpperCase()
-        return (productAsin === normalizedId || productEan === normalizedId || productId === normalizedId) && p.status === '1'
-      })
-
-      if (apiProduct) {
-        return transformApiProductToProduct(apiProduct)
-      }
-
-      // If no more products or reached last page, stop searching
-      if (apiResponse.data.products.length === 0 || page >= apiResponse.meta.lastPage) {
-        break
-      }
-
-      page++
+    if (!id || id.trim() === '') {
+      return null
     }
 
-    // Product not found after searching multiple pages
-    console.warn(`Product with ID "${id}" not found after searching ${page - 1} pages`)
+    const normalizedId = id.trim().toUpperCase()
+
+    // Strategy 1: Try fetching without pagination first (all products at once)
+    // This is faster if the product exists and is in the response
+    try {
+      const urlWithoutPagination = `${API_BASE_URL}/get-products?status=1&sort_by=created_at&sort_order=desc`
+      const response = await fetch(urlWithoutPagination, {
+        cache: 'no-store', // Force fresh data on live server
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+
+      if (response.ok) {
+        const apiResponse: ApiResponse = await response.json()
+        
+        if (apiResponse.success && apiResponse.data?.products) {
+          const apiProduct = apiResponse.data.products.find(p => {
+            if (p.status !== '1') return false
+            const productAsin = p.asin?.trim().toUpperCase() || ''
+            const productEan = p.ean?.trim().toUpperCase() || ''
+            const productId = p.id?.trim().toUpperCase() || ''
+            return productAsin === normalizedId || productEan === normalizedId || productId === normalizedId
+          })
+
+          if (apiProduct) {
+            return transformApiProductToProduct(apiProduct)
+          }
+        }
+      }
+    } catch (error) {
+      // If no-pagination fails, continue to paginated search
+      console.log('No-pagination fetch failed, trying paginated search')
+    }
+
+    // Strategy 2: Search through paginated results
+    let page = 1
+    const maxPagesToSearch = 50 // Increased to 50 pages for better coverage
+    const perPage = 200 // Increased to 200 products per page
+    
+    while (page <= maxPagesToSearch) {
+      try {
+        const url = `${API_BASE_URL}/get-products?status=1&page=${page}&per_page=${perPage}&paginate=true&sort_by=created_at&sort_order=desc`
+        const response = await fetch(url, {
+          cache: 'no-store', // Force fresh data on live server
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
+
+        if (!response.ok) {
+          console.error(`Failed to fetch page ${page}: ${response.status} ${response.statusText}`)
+          page++
+          continue
+        }
+
+        const apiResponse: ApiResponse = await response.json()
+        
+        if (!apiResponse.success || !apiResponse.data?.products) {
+          console.error(`API error on page ${page}: ${apiResponse.message || 'Unknown error'}`)
+          page++
+          continue
+        }
+
+        if (apiResponse.data.products.length === 0) {
+          break
+        }
+
+        // Find product by ASIN/EAN/ID
+        const apiProduct = apiResponse.data.products.find(p => {
+          if (p.status !== '1') return false
+          const productAsin = p.asin?.trim().toUpperCase() || ''
+          const productEan = p.ean?.trim().toUpperCase() || ''
+          const productId = p.id?.trim().toUpperCase() || ''
+          return productAsin === normalizedId || productEan === normalizedId || productId === normalizedId
+        })
+
+        if (apiProduct) {
+          return transformApiProductToProduct(apiProduct)
+        }
+
+        // If reached last page, stop searching
+        if (page >= apiResponse.meta.lastPage) {
+          break
+        }
+
+        page++
+      } catch (pageError) {
+        console.error(`Error on page ${page}:`, pageError)
+        page++
+        if (page > maxPagesToSearch) break
+      }
+    }
+
     return null
   } catch (error) {
     console.error('Error fetching product:', error)
