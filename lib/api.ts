@@ -308,31 +308,52 @@ export async function fetchProducts(params?: FetchProductsParams): Promise<{
 // Fetch single product by ASIN/ID
 export async function fetchProductById(id: string): Promise<Product | null> {
   try {
-    // Fetch all products without pagination to find the specific product
-    const response = await fetch(`${API_BASE_URL}/get-products?status=1`, {
-      next: { revalidate: 60 }
-    })
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch products: ${response.statusText}`)
-    }
-
-    const apiResponse: ApiResponse = await response.json()
+    // Fetch products with high limit to find the specific product
+    // Try multiple pages if needed
+    let page = 1
+    const maxPagesToSearch = 10 // Search up to 10 pages
+    const perPage = 100 // Fetch 100 products per page for faster search
     
-    if (!apiResponse.success || !apiResponse.data.products) {
-      throw new Error(apiResponse.message || 'Failed to fetch products')
+    while (page <= maxPagesToSearch) {
+      const response = await fetch(`${API_BASE_URL}/get-products?status=1&page=${page}&per_page=${perPage}&paginate=true`, {
+        next: { revalidate: 60 }
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch products: ${response.statusText}`)
+      }
+
+      const apiResponse: ApiResponse = await response.json()
+      
+      if (!apiResponse.success || !apiResponse.data.products) {
+        throw new Error(apiResponse.message || 'Failed to fetch products')
+      }
+
+      // Find product by ASIN/EAN/ID and filter active products
+      // Normalize the ID for comparison (trim whitespace, case insensitive)
+      const normalizedId = id.trim().toUpperCase()
+      const apiProduct = apiResponse.data.products.find(p => {
+        const productAsin = p.asin?.trim().toUpperCase()
+        const productEan = p.ean?.trim().toUpperCase()
+        const productId = p.id?.trim().toUpperCase()
+        return (productAsin === normalizedId || productEan === normalizedId || productId === normalizedId) && p.status === '1'
+      })
+
+      if (apiProduct) {
+        return transformApiProductToProduct(apiProduct)
+      }
+
+      // If no more products or reached last page, stop searching
+      if (apiResponse.data.products.length === 0 || page >= apiResponse.meta.lastPage) {
+        break
+      }
+
+      page++
     }
 
-    // Find product by ASIN/EAN/ID and filter active products
-    const apiProduct = apiResponse.data.products.find(
-      p => (p.asin === id || p.ean === id || p.id === id) && p.status === '1'
-    )
-
-    if (!apiProduct) {
-      return null
-    }
-
-    return transformApiProductToProduct(apiProduct)
+    // Product not found after searching multiple pages
+    console.warn(`Product with ID "${id}" not found after searching ${page - 1} pages`)
+    return null
   } catch (error) {
     console.error('Error fetching product:', error)
     return null
