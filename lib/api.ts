@@ -309,17 +309,45 @@ export async function fetchProducts(params?: FetchProductsParams): Promise<{
 export async function fetchProductById(id: string): Promise<Product | null> {
   try {
     if (!id || id.trim() === '') {
+      console.error(`[fetchProductById] Invalid ID: "${id}"`)
       return null
     }
 
-    const normalizedId = id.trim().toUpperCase()
+    // Decode URL-encoded ID if needed
+    let decodedId = id
+    try {
+      decodedId = decodeURIComponent(id)
+    } catch (e) {
+      decodedId = id
+    }
 
-    // Strategy 1: Try fetching without pagination first (all products at once)
-    // This is faster if the product exists and is in the response
+    const normalizedId = decodedId.trim().toUpperCase()
+    console.log(`[fetchProductById] Searching for product ID: "${normalizedId}" (original: "${id}")`)
+
+    // Helper function to find product in array
+    const findProductInArray = (products: ApiProduct[]): ApiProduct | undefined => {
+      return products.find(p => {
+        const productAsin = (p.asin || '').trim().toUpperCase()
+        const productEan = (p.ean || '').trim().toUpperCase()
+        const productId = (p.id || '').trim().toUpperCase()
+        
+        const matches = productAsin === normalizedId || productEan === normalizedId || productId === normalizedId
+        
+        if (matches) {
+          console.log(`[fetchProductById] Found match! ASIN: "${productAsin}", EAN: "${productEan}", ID: "${productId}", Status: "${p.status}"`)
+        }
+        
+        return matches && p.status === '1'
+      })
+    }
+
+    // Strategy 1: Try fetching without pagination (all products)
     try {
       const urlWithoutPagination = `${API_BASE_URL}/get-products?status=1&sort_by=created_at&sort_order=desc`
+      console.log(`[fetchProductById] Strategy 1: Fetching without pagination`)
+      
       const response = await fetch(urlWithoutPagination, {
-        cache: 'no-store', // Force fresh data on live server
+        cache: 'no-store',
         headers: {
           'Content-Type': 'application/json',
         }
@@ -329,41 +357,68 @@ export async function fetchProductById(id: string): Promise<Product | null> {
         const apiResponse: ApiResponse = await response.json()
         
         if (apiResponse.success && apiResponse.data?.products) {
-          const apiProduct = apiResponse.data.products.find(p => {
-            if (p.status !== '1') return false
-            const productAsin = p.asin?.trim().toUpperCase() || ''
-            const productEan = p.ean?.trim().toUpperCase() || ''
-            const productId = p.id?.trim().toUpperCase() || ''
-            return productAsin === normalizedId || productEan === normalizedId || productId === normalizedId
-          })
-
+          console.log(`[fetchProductById] Strategy 1: Found ${apiResponse.data.products.length} products`)
+          const apiProduct = findProductInArray(apiResponse.data.products)
+          
           if (apiProduct) {
+            console.log(`[fetchProductById] Strategy 1: Product found!`)
+            return transformApiProductToProduct(apiProduct)
+          }
+        }
+      } else {
+        console.log(`[fetchProductById] Strategy 1: Response not OK: ${response.status}`)
+      }
+    } catch (error) {
+      console.log(`[fetchProductById] Strategy 1 failed:`, error)
+    }
+
+    // Strategy 2: Try without status filter (in case product has different status)
+    try {
+      const urlWithoutStatus = `${API_BASE_URL}/get-products?sort_by=created_at&sort_order=desc`
+      console.log(`[fetchProductById] Strategy 2: Fetching without status filter`)
+      
+      const response = await fetch(urlWithoutStatus, {
+        cache: 'no-store',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+
+      if (response.ok) {
+        const apiResponse: ApiResponse = await response.json()
+        
+        if (apiResponse.success && apiResponse.data?.products) {
+          console.log(`[fetchProductById] Strategy 2: Found ${apiResponse.data.products.length} products`)
+          const apiProduct = findProductInArray(apiResponse.data.products)
+          
+          if (apiProduct) {
+            console.log(`[fetchProductById] Strategy 2: Product found!`)
             return transformApiProductToProduct(apiProduct)
           }
         }
       }
     } catch (error) {
-      // If no-pagination fails, continue to paginated search
-      console.log('No-pagination fetch failed, trying paginated search')
+      console.log(`[fetchProductById] Strategy 2 failed:`, error)
     }
 
-    // Strategy 2: Search through paginated results
+    // Strategy 3: Search through paginated results with status filter
+    console.log(`[fetchProductById] Strategy 3: Starting paginated search`)
     let page = 1
-    const maxPagesToSearch = 50 // Increased to 50 pages for better coverage
-    const perPage = 200 // Increased to 200 products per page
+    const maxPagesToSearch = 50
+    const perPage = 200
     
     while (page <= maxPagesToSearch) {
       try {
         const url = `${API_BASE_URL}/get-products?status=1&page=${page}&per_page=${perPage}&paginate=true&sort_by=created_at&sort_order=desc`
         const response = await fetch(url, {
-          cache: 'no-store', // Force fresh data on live server
+          cache: 'no-store',
           headers: {
             'Content-Type': 'application/json',
           }
         })
 
         if (!response.ok) {
-          console.error(`Failed to fetch page ${page}: ${response.status} ${response.statusText}`)
+          console.error(`[fetchProductById] Page ${page}: HTTP ${response.status}`)
           page++
           continue
         }
@@ -371,44 +426,83 @@ export async function fetchProductById(id: string): Promise<Product | null> {
         const apiResponse: ApiResponse = await response.json()
         
         if (!apiResponse.success || !apiResponse.data?.products) {
-          console.error(`API error on page ${page}: ${apiResponse.message || 'Unknown error'}`)
+          console.error(`[fetchProductById] Page ${page}: API error - ${apiResponse.message || 'Unknown'}`)
           page++
           continue
         }
 
         if (apiResponse.data.products.length === 0) {
+          console.log(`[fetchProductById] Page ${page}: No products, stopping`)
           break
         }
 
-        // Find product by ASIN/EAN/ID
-        const apiProduct = apiResponse.data.products.find(p => {
-          if (p.status !== '1') return false
-          const productAsin = p.asin?.trim().toUpperCase() || ''
-          const productEan = p.ean?.trim().toUpperCase() || ''
-          const productId = p.id?.trim().toUpperCase() || ''
-          return productAsin === normalizedId || productEan === normalizedId || productId === normalizedId
-        })
+        const apiProduct = findProductInArray(apiResponse.data.products)
 
         if (apiProduct) {
+          console.log(`[fetchProductById] Strategy 3: Product found on page ${page}!`)
           return transformApiProductToProduct(apiProduct)
         }
 
-        // If reached last page, stop searching
+        if (page >= apiResponse.meta.lastPage) {
+          console.log(`[fetchProductById] Reached last page (${apiResponse.meta.lastPage})`)
+          break
+        }
+
+        page++
+      } catch (pageError) {
+        console.error(`[fetchProductById] Page ${page} error:`, pageError)
+        page++
+        if (page > maxPagesToSearch) break
+      }
+    }
+
+    // Strategy 4: Search through paginated results WITHOUT status filter
+    console.log(`[fetchProductById] Strategy 4: Paginated search without status filter`)
+    page = 1
+    
+    while (page <= maxPagesToSearch) {
+      try {
+        const url = `${API_BASE_URL}/get-products?page=${page}&per_page=${perPage}&paginate=true&sort_by=created_at&sort_order=desc`
+        const response = await fetch(url, {
+          cache: 'no-store',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
+
+        if (!response.ok) {
+          page++
+          continue
+        }
+
+        const apiResponse: ApiResponse = await response.json()
+        
+        if (!apiResponse.success || !apiResponse.data?.products || apiResponse.data.products.length === 0) {
+          break
+        }
+
+        const apiProduct = findProductInArray(apiResponse.data.products)
+
+        if (apiProduct) {
+          console.log(`[fetchProductById] Strategy 4: Product found on page ${page}!`)
+          return transformApiProductToProduct(apiProduct)
+        }
+
         if (page >= apiResponse.meta.lastPage) {
           break
         }
 
         page++
       } catch (pageError) {
-        console.error(`Error on page ${page}:`, pageError)
         page++
         if (page > maxPagesToSearch) break
       }
     }
 
+    console.error(`[fetchProductById] Product "${normalizedId}" not found after all strategies`)
     return null
   } catch (error) {
-    console.error('Error fetching product:', error)
+    console.error('[fetchProductById] Unexpected error:', error)
     return null
   }
 }
