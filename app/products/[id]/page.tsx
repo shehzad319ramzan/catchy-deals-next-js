@@ -7,6 +7,10 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 
+// Force dynamic rendering to prevent static generation and caching issues on live server
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 interface ProductDetailPageProps {
   params: Promise<{
     id: string

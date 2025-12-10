@@ -235,12 +235,10 @@ export async function fetchProducts(params?: FetchProductsParams): Promise<{
     
     // Optimize fetch for faster loading
     const fetchOptions: RequestInit = {
-      cache: 'no-store', // Always fetch fresh data
+      next: { revalidate: 0 }, // Always fetch fresh data (Next.js way)
       headers: {
         'Content-Type': 'application/json',
-      },
-      // Add priority hint for faster loading
-      priority: 'high'
+      }
     }
     
     const response = await fetch(url, fetchOptions)
@@ -306,203 +304,109 @@ export async function fetchProducts(params?: FetchProductsParams): Promise<{
 }
 
 // Fetch single product by ASIN/ID
+// Uses the same fetchProducts function to ensure consistency with home page
 export async function fetchProductById(id: string): Promise<Product | null> {
   try {
     if (!id || id.trim() === '') {
-      console.error(`[fetchProductById] Invalid ID: "${id}"`)
       return null
     }
 
-    // Decode URL-encoded ID if needed
-    let decodedId = id
-    try {
-      decodedId = decodeURIComponent(id)
-    } catch (e) {
-      decodedId = id
-    }
-
-    const normalizedId = decodedId.trim().toUpperCase()
-    console.log(`[fetchProductById] Searching for product ID: "${normalizedId}" (original: "${id}")`)
-
-    // Helper function to find product in array
-    const findProductInArray = (products: ApiProduct[]): ApiProduct | undefined => {
-      return products.find(p => {
-        const productAsin = (p.asin || '').trim().toUpperCase()
-        const productEan = (p.ean || '').trim().toUpperCase()
-        const productId = (p.id || '').trim().toUpperCase()
-        
-        const matches = productAsin === normalizedId || productEan === normalizedId || productId === normalizedId
-        
-        if (matches) {
-          console.log(`[fetchProductById] Found match! ASIN: "${productAsin}", EAN: "${productEan}", ID: "${productId}", Status: "${p.status}"`)
-        }
-        
-        return matches && p.status === '1'
-      })
-    }
-
-    // Strategy 1: Try fetching without pagination (all products)
-    try {
-      const urlWithoutPagination = `${API_BASE_URL}/get-products?status=1&sort_by=created_at&sort_order=desc`
-      console.log(`[fetchProductById] Strategy 1: Fetching without pagination`)
-      
-      const response = await fetch(urlWithoutPagination, {
-        cache: 'no-store',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      })
-
-      if (response.ok) {
-        const apiResponse: ApiResponse = await response.json()
-        
-        if (apiResponse.success && apiResponse.data?.products) {
-          console.log(`[fetchProductById] Strategy 1: Found ${apiResponse.data.products.length} products`)
-          const apiProduct = findProductInArray(apiResponse.data.products)
-          
-          if (apiProduct) {
-            console.log(`[fetchProductById] Strategy 1: Product found!`)
-            return transformApiProductToProduct(apiProduct)
-          }
-        }
-      } else {
-        console.log(`[fetchProductById] Strategy 1: Response not OK: ${response.status}`)
-      }
-    } catch (error) {
-      console.log(`[fetchProductById] Strategy 1 failed:`, error)
-    }
-
-    // Strategy 2: Try without status filter (in case product has different status)
-    try {
-      const urlWithoutStatus = `${API_BASE_URL}/get-products?sort_by=created_at&sort_order=desc`
-      console.log(`[fetchProductById] Strategy 2: Fetching without status filter`)
-      
-      const response = await fetch(urlWithoutStatus, {
-        cache: 'no-store',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      })
-
-      if (response.ok) {
-        const apiResponse: ApiResponse = await response.json()
-        
-        if (apiResponse.success && apiResponse.data?.products) {
-          console.log(`[fetchProductById] Strategy 2: Found ${apiResponse.data.products.length} products`)
-          const apiProduct = findProductInArray(apiResponse.data.products)
-          
-          if (apiProduct) {
-            console.log(`[fetchProductById] Strategy 2: Product found!`)
-            return transformApiProductToProduct(apiProduct)
-          }
-        }
-      }
-    } catch (error) {
-      console.log(`[fetchProductById] Strategy 2 failed:`, error)
-    }
-
-    // Strategy 3: Search through paginated results with status filter
-    console.log(`[fetchProductById] Strategy 3: Starting paginated search`)
+    const normalizedId = id.trim().toUpperCase()
+    
+    // Use the same fetchProducts function that works on the home page
+    // Search through multiple pages until we find the product
     let page = 1
-    const maxPagesToSearch = 50
-    const perPage = 200
+    const maxPagesToSearch = 100 // Search up to 100 pages
+    const perPage = 200 // Fetch 200 products per page
     
     while (page <= maxPagesToSearch) {
       try {
-        const url = `${API_BASE_URL}/get-products?status=1&page=${page}&per_page=${perPage}&paginate=true&sort_by=created_at&sort_order=desc`
-        const response = await fetch(url, {
-          cache: 'no-store',
-          headers: {
-            'Content-Type': 'application/json',
-          }
+        // Use the exact same fetchProducts function that works on home page
+        const result = await fetchProducts({
+          page: page,
+          perPage: perPage,
+          sortBy: 'created_at',
+          sortOrder: 'desc',
+          status: '1'
         })
 
-        if (!response.ok) {
-          console.error(`[fetchProductById] Page ${page}: HTTP ${response.status}`)
-          page++
-          continue
-        }
-
-        const apiResponse: ApiResponse = await response.json()
-        
-        if (!apiResponse.success || !apiResponse.data?.products) {
-          console.error(`[fetchProductById] Page ${page}: API error - ${apiResponse.message || 'Unknown'}`)
-          page++
-          continue
-        }
-
-        if (apiResponse.data.products.length === 0) {
-          console.log(`[fetchProductById] Page ${page}: No products, stopping`)
+        if (!result.products || result.products.length === 0) {
+          // No more products, stop searching
           break
         }
 
-        const apiProduct = findProductInArray(apiResponse.data.products)
+        // Search for the product in the transformed products
+        // The product.id is set to apiProduct.asin in transformApiProductToProduct
+        const product = result.products.find(p => {
+          const productId = (p.id || '').trim().toUpperCase()
+          const productAsin = (p.asin || '').trim().toUpperCase()
+          const productEan = (p.ean || '').trim().toUpperCase()
+          
+          return productId === normalizedId || 
+                 productAsin === normalizedId || 
+                 productEan === normalizedId
+        })
 
-        if (apiProduct) {
-          console.log(`[fetchProductById] Strategy 3: Product found on page ${page}!`)
-          return transformApiProductToProduct(apiProduct)
+        if (product) {
+          return product
         }
 
-        if (page >= apiResponse.meta.lastPage) {
-          console.log(`[fetchProductById] Reached last page (${apiResponse.meta.lastPage})`)
+        // If we've reached the last page, stop searching
+        if (page >= result.pagination.lastPage) {
           break
         }
 
         page++
       } catch (pageError) {
-        console.error(`[fetchProductById] Page ${page} error:`, pageError)
+        console.error(`Error fetching page ${page} for product search:`, pageError)
         page++
         if (page > maxPagesToSearch) break
       }
     }
 
-    // Strategy 4: Search through paginated results WITHOUT status filter
-    console.log(`[fetchProductById] Strategy 4: Paginated search without status filter`)
+    // If not found with status=1, try without status filter
     page = 1
-    
-    while (page <= maxPagesToSearch) {
+    while (page <= 50) { // Limit to 50 pages for this fallback
       try {
-        const url = `${API_BASE_URL}/get-products?page=${page}&per_page=${perPage}&paginate=true&sort_by=created_at&sort_order=desc`
-        const response = await fetch(url, {
-          cache: 'no-store',
-          headers: {
-            'Content-Type': 'application/json',
-          }
+        const result = await fetchProducts({
+          page: page,
+          perPage: perPage,
+          sortBy: 'created_at',
+          sortOrder: 'desc'
+          // No status filter
         })
 
-        if (!response.ok) {
-          page++
-          continue
-        }
-
-        const apiResponse: ApiResponse = await response.json()
-        
-        if (!apiResponse.success || !apiResponse.data?.products || apiResponse.data.products.length === 0) {
+        if (!result.products || result.products.length === 0) {
           break
         }
 
-        const apiProduct = findProductInArray(apiResponse.data.products)
+        const product = result.products.find(p => {
+          const productId = (p.id || '').trim().toUpperCase()
+          const productAsin = (p.asin || '').trim().toUpperCase()
+          const productEan = (p.ean || '').trim().toUpperCase()
+          
+          return productId === normalizedId || 
+                 productAsin === normalizedId || 
+                 productEan === normalizedId
+        })
 
-        if (apiProduct) {
-          console.log(`[fetchProductById] Strategy 4: Product found on page ${page}!`)
-          return transformApiProductToProduct(apiProduct)
+        if (product) {
+          return product
         }
 
-        if (page >= apiResponse.meta.lastPage) {
+        if (page >= result.pagination.lastPage) {
           break
         }
 
         page++
       } catch (pageError) {
-        page++
-        if (page > maxPagesToSearch) break
+        break
       }
     }
 
-    console.error(`[fetchProductById] Product "${normalizedId}" not found after all strategies`)
     return null
   } catch (error) {
-    console.error('[fetchProductById] Unexpected error:', error)
+    console.error('Error fetching product by ID:', error)
     return null
   }
 }
