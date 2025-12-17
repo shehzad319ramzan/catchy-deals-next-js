@@ -2,7 +2,7 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import MarketplaceButtons from '@/components/MarketplaceButtons'
 import Disclaimer from '@/components/Disclaimer'
-import { fetchProductById } from '@/lib/api'
+import { fetchProductById, generateAmazonUrl } from '@/lib/api'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
@@ -25,11 +25,23 @@ export default async function ProductDetailPage({ params, searchParams }: Produc
   const { market } = await searchParams
   const product = await fetchProductById(id)
 
+  // If market parameter exists, redirect to Amazon marketplace
+  // This works even if product is not found in database
+  if (market) {
+    const amazonUrl = generateAmazonUrl(id, market)
+    if (amazonUrl) {
+      // Redirect to Amazon marketplace
+      redirect(amazonUrl)
+    }
+  }
+
+  // If product not found and no market parameter, show not found page
   if (!product) {
     notFound()
   }
 
-  // If market parameter exists, redirect to Amazon marketplace
+  // If product exists and market parameter exists, redirect to Amazon marketplace
+  // (This is a fallback in case the above redirect didn't happen)
   if (market && product.affiliateLinks) {
     const validMarkets: Array<'de' | 'fr' | 'it' | 'es'> = ['de', 'fr', 'it', 'es']
     const marketKey = market.toLowerCase() as 'de' | 'fr' | 'it' | 'es'

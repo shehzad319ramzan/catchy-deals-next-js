@@ -3,14 +3,31 @@ const API_BASE_URL = 'https://backendnamecheap.freshusdeals.com/api/v1'
 // Hours filter - only show products from last 48 hours
 const HOURS_FILTER = 48
 
-const MARKETPLACE_CONFIG = {
+export const MARKETPLACE_CONFIG = {
   de: { domain: 'de', tag: 'catchydeal041-21' },
   fr: { domain: 'fr', tag: 'catchydeals08-21' },
   it: { domain: 'it', tag: 'catchydeals03-21' },
   es: { domain: 'es', tag: 'catchydeals05-21' }
 } as const
 
-type MarketplaceKey = keyof typeof MARKETPLACE_CONFIG
+export type MarketplaceKey = keyof typeof MARKETPLACE_CONFIG
+
+// Helper function to generate Amazon affiliate URL for any ASIN
+export function generateAmazonUrl(asin: string, market: string): string | null {
+  if (!asin || !market) {
+    return null
+  }
+
+  const validMarkets: Array<'de' | 'fr' | 'it' | 'es'> = ['de', 'fr', 'it', 'es']
+  const marketKey = market.toLowerCase() as MarketplaceKey
+  
+  if (!validMarkets.includes(marketKey)) {
+    return null
+  }
+
+  const { domain, tag } = MARKETPLACE_CONFIG[marketKey]
+  return `https://www.amazon.${domain}/dp/${asin}?tag=${tag}`
+}
 
 export interface ApiProduct {
   id: string
