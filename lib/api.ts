@@ -28,11 +28,23 @@ export function generateAmazonUrl(asin: string, market: string, tag?: string): s
   const { domain, tag: defaultTag } = MARKETPLACE_CONFIG[marketKey]
   // Use provided tag from URL if available and not empty, otherwise use default tag from config
   // Priority: URL tag > default tag
-  console.log('generateAmazonUrl - Received tag:', tag, 'Type:', typeof tag, 'Default tag:', defaultTag)
-  const affiliateTag = tag && typeof tag === 'string' && tag.trim() !== '' 
-    ? tag.trim() 
-    : defaultTag
-  console.log('generateAmazonUrl - Using affiliate tag:', affiliateTag)
+  console.log('generateAmazonUrl - Received tag:', tag, 'Type:', typeof tag, 'Is truthy:', !!tag, 'Default tag:', defaultTag)
+  
+  // Check if tag is provided and valid
+  // Explicitly type as string to allow any tag value (not just the default tags)
+  let affiliateTag: string = defaultTag
+  if (tag !== undefined && tag !== null) {
+    const tagStr = String(tag).trim()
+    if (tagStr !== '') {
+      affiliateTag = tagStr
+      console.log('generateAmazonUrl - Using custom tag from URL:', affiliateTag)
+    } else {
+      console.log('generateAmazonUrl - Tag is empty, using default:', affiliateTag)
+    }
+  } else {
+    console.log('generateAmazonUrl - No tag provided, using default:', affiliateTag)
+  }
+  
   return `https://www.amazon.${domain}/dp/${asin}?tag=${affiliateTag}`
 }
 
