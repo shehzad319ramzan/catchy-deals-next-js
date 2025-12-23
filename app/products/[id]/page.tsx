@@ -41,7 +41,16 @@ export default async function ProductDetailPage({ params, searchParams }: Produc
     // Use the tag from URL if provided, otherwise it will use default in generateAmazonUrl
     // Pass tagValue directly (can be string, undefined, or empty string - generateAmazonUrl will handle it)
     const amazonUrl = generateAmazonUrl(id, marketValue, tagValue)
+    
+    // Debug: Log to server console (visible in terminal, not browser)
+    console.log('=== REDIRECT DEBUG ===')
+    console.log('Product ID:', id)
+    console.log('Market:', marketValue)
+    console.log('Tag from URL:', tagValue)
+    console.log('Tag type:', typeof tagValue)
     console.log('Generated Amazon URL:', amazonUrl)
+    console.log('=====================')
+    
     if (amazonUrl) {
       // Redirect immediately without waiting for database
       redirect(amazonUrl)

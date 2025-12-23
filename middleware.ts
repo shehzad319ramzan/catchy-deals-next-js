@@ -12,7 +12,7 @@ const MARKETPLACE_CONFIG = {
 type MarketplaceKey = keyof typeof MARKETPLACE_CONFIG
 
 // Generate Amazon URL - same logic as in lib/api.ts
-function generateAmazonUrl(asin: string, market: string): string | null {
+function generateAmazonUrl(asin: string, market: string, tag?: string | null): string | null {
   if (!asin || !market) {
     return null
   }
@@ -24,8 +24,16 @@ function generateAmazonUrl(asin: string, market: string): string | null {
     return null
   }
 
-  const { domain, tag } = MARKETPLACE_CONFIG[marketKey]
-  return `https://www.amazon.${domain}/dp/${asin}?tag=${tag}`
+  const { domain, tag: defaultTag } = MARKETPLACE_CONFIG[marketKey]
+  
+  // Use provided tag from URL if available and not empty, otherwise use default tag from config
+  // Priority: URL tag > default tag
+  let affiliateTag: string = defaultTag
+  if (tag !== undefined && tag !== null && tag.trim() !== '') {
+    affiliateTag = tag.trim()
+  }
+  
+  return `https://www.amazon.${domain}/dp/${asin}?tag=${affiliateTag}`
 }
 
 export function middleware(request: NextRequest) {
@@ -37,11 +45,13 @@ export function middleware(request: NextRequest) {
   if (productMatch) {
     const asin = productMatch[1]
     const market = searchParams.get('market')
+    const tag = searchParams.get('tag') // Get tag parameter from URL
     
     // If market parameter exists, redirect immediately to Amazon
     // This happens at the edge, before any page rendering
     if (market) {
-      const amazonUrl = generateAmazonUrl(asin, market)
+      // Pass tag parameter if provided
+      const amazonUrl = generateAmazonUrl(asin, market, tag)
       if (amazonUrl) {
         return NextResponse.redirect(amazonUrl)
       }
@@ -56,4 +66,5 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: '/products/:path*',
 }
+
 
