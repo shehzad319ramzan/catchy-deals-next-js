@@ -26,8 +26,11 @@ export function generateAmazonUrl(asin: string, market: string, tag?: string): s
   }
 
   const { domain, tag: defaultTag } = MARKETPLACE_CONFIG[marketKey]
-  // Use provided tag if available and not empty, otherwise use default tag from config
-  const affiliateTag = (tag && tag.trim() !== '') ? tag.trim() : defaultTag
+  // Use provided tag from URL if available and not empty, otherwise use default tag from config
+  // Priority: URL tag > default tag
+  const affiliateTag = tag && typeof tag === 'string' && tag.trim() !== '' 
+    ? tag.trim() 
+    : defaultTag
   return `https://www.amazon.${domain}/dp/${asin}?tag=${affiliateTag}`
 }
 

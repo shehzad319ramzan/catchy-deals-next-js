@@ -23,11 +23,13 @@ interface ProductDetailPageProps {
 
 export default async function ProductDetailPage({ params, searchParams }: ProductDetailPageProps) {
   const { id } = await params
-  const { market, tag } = await searchParams
+  const resolvedSearchParams = await searchParams
+  const { market, tag } = resolvedSearchParams
 
   // If market parameter exists, redirect immediately to Amazon marketplace
   // This skips database fetch for instant redirect - works even if product not in database
   if (market) {
+    // Use the tag from URL if provided, otherwise it will use default in generateAmazonUrl
     const amazonUrl = generateAmazonUrl(id, market, tag)
     if (amazonUrl) {
       // Redirect immediately without waiting for database
