@@ -16,8 +16,8 @@ interface ProductDetailPageProps {
     id: string
   }>
   searchParams: Promise<{
-    market?: string
-    tag?: string
+    market?: string | string[]
+    tag?: string | string[]
   }>
 }
 
@@ -26,12 +26,21 @@ export default async function ProductDetailPage({ params, searchParams }: Produc
   const resolvedSearchParams = await searchParams
   const { market, tag } = resolvedSearchParams
 
+  // Debug: Log the received parameters
+  console.log('Product Detail Page - Received params:', { id, market, tag, tagType: typeof tag })
+
   // If market parameter exists, redirect immediately to Amazon marketplace
   // This skips database fetch for instant redirect - works even if product not in database
-  if (market) {
+  // Handle market and tag - could be string or string array in Next.js
+  const marketValue = Array.isArray(market) ? market[0] : market
+  const tagValue = Array.isArray(tag) ? tag[0] : tag
+  
+  console.log('Product Detail Page - Processed params:', { id, market: marketValue, tag: tagValue })
+
+  if (marketValue) {
     // Use the tag from URL if provided, otherwise it will use default in generateAmazonUrl
-    // Pass tag explicitly - it will be used if provided, otherwise generateAmazonUrl uses default
-    const amazonUrl = generateAmazonUrl(id, market, tag || undefined)
+    const amazonUrl = generateAmazonUrl(id, marketValue, tagValue || undefined)
+    console.log('Generated Amazon URL:', amazonUrl)
     if (amazonUrl) {
       // Redirect immediately without waiting for database
       redirect(amazonUrl)
