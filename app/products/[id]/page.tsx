@@ -30,7 +30,8 @@ export default async function ProductDetailPage({ params, searchParams }: Produc
   // This skips database fetch for instant redirect - works even if product not in database
   if (market) {
     // Use the tag from URL if provided, otherwise it will use default in generateAmazonUrl
-    const amazonUrl = generateAmazonUrl(id, market, tag)
+    // Pass tag explicitly - it will be used if provided, otherwise generateAmazonUrl uses default
+    const amazonUrl = generateAmazonUrl(id, market, tag || undefined)
     if (amazonUrl) {
       // Redirect immediately without waiting for database
       redirect(amazonUrl)
