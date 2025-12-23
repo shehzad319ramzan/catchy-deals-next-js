@@ -13,7 +13,7 @@ export const MARKETPLACE_CONFIG = {
 export type MarketplaceKey = keyof typeof MARKETPLACE_CONFIG
 
 // Helper function to generate Amazon affiliate URL for any ASIN
-export function generateAmazonUrl(asin: string, market: string): string | null {
+export function generateAmazonUrl(asin: string, market: string, tag?: string): string | null {
   if (!asin || !market) {
     return null
   }
@@ -25,8 +25,10 @@ export function generateAmazonUrl(asin: string, market: string): string | null {
     return null
   }
 
-  const { domain, tag } = MARKETPLACE_CONFIG[marketKey]
-  return `https://www.amazon.${domain}/dp/${asin}?tag=${tag}`
+  const { domain, tag: defaultTag } = MARKETPLACE_CONFIG[marketKey]
+  // Use provided tag if available, otherwise use default tag from config
+  const affiliateTag = tag || defaultTag
+  return `https://www.amazon.${domain}/dp/${asin}?tag=${affiliateTag}`
 }
 
 export interface ApiProduct {
